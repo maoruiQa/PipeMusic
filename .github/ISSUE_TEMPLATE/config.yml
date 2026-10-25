@@ -1,5 +1,1 @@
-blank_issues_enabled: false
-contact_links:
-  - name: ❓ Question
-    url: https://github.com/InfinityLoop1308/PipePipe/discussions/new?category=questions
-    about: Ask about anything PipePipe-related
+blank_issues_enabled: true

@@ -101,7 +101,7 @@ jobs:
               repo,
               issue_number: issue.number,
               body: [
-                `This report was submitted using PipePipe **${reportedRaw}**, which is older than the latest release, **${latestRelease.tag_name}**.`,
+                `This report was submitted using PipeMusic **${reportedRaw}**, which is older than the latest release, **${latestRelease.tag_name}**.`,
                 '',
                 `Please [update to the latest release](${latestRelease.html_url}), verify that the issue still occurs, and submit a new bug report if necessary.`,
                 '',

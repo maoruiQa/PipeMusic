@@ -1,96 +1,165 @@
-<hr>
-<p align="center"><img src="assets/logo.png" width="150"></p> 
-<h2 align="center"><b>PipePipe</b></h2>
-<h4 align="center">
-NewPipe, reimagined: faster, more stable, and packed with more features.</h4>
-<p align="center"><a href="https://f-droid.org/packages/InfinityLoop1309.NewPipeEnhanced/"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid"  width="207" /></a>
-<a href="https://apt.izzysoft.de/fdroid/index/apk/InfinityLoop1309.NewPipeEnhanced"><img src="assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" width="207" /></a></p>
-<hr>
+# PipeMusic
 
-## Beyond NewPipe
+PipeMusic is a music-first Android app built on top of the PipePipe codebase. It keeps the
+multi-platform extraction and download engine, but replaces the video-oriented interface with a
+focused listening experience: search for music, stream audio, download tracks for offline use,
+import a local folder, organize playlists, and personalize the interface with themes.
 
-#### YouTube Enhancements
-* Integrate SponsorBlock for skipping sponsored segments (YouTube & BiliBili) 
-* Restore YouTube dislikes with ReturnYouTubeDislike 
-* Show original titles on YouTube (non-localized) 
-* Log in to access restricted or premium content 
+This repository is the PipeMusic fork. The original PipePipe project remains the upstream
+source for the extraction engine and much of the low-level platform integration.
 
-#### Media Features
-* Display live chats in danmaku-style overlays
-* Support AV1 and VP9 codecs for efficient, high-quality playback 
-* Enable music player mode with background playback 
+## Relationship to PipePipe and NewPipe
 
-#### Filtering
-* Apply advanced search filters for better discovery 
-* Filter out unwanted items by keywords or channels 
-* Block shorts and paid videos for a cleaner feed 
+```text
+NewPipe  ->  PipePipe  ->  PipeMusic
+```
 
-#### Playback Controls
-* Use swipe-to-seek and fullscreen gestures for intuitive navigation 
-* Long-press to speed up playback 
-* Set a sleep timer for bedtime listening 
+- **NewPipe** is the original libre YouTube/streaming client.
+- **PipePipe** is a feature-rich fork of NewPipe. It provides the multi-platform extractor,
+  download infrastructure and the legacy Android client that PipeMusic is derived from.
+- **PipeMusic** is an independent, music-focused fork of PipePipe. It uses PipePipe's extractor
+  and playback/download primitives, while the user-facing Android app is a new Compose-based
+  music player. Video playback, subscriptions, comments and channel pages are not exposed in the
+  product UI.
 
-#### Enhanced Playlists
-* Download full playlists at once 
-* Search and sort within local playlists and histories
+PipeMusic is **not affiliated with or endorsed by** the PipePipe or NewPipe projects. Upstream
+copyright notices and the GPL-3.0 license are preserved.
 
-... and many more improvements!
+### What is reused
 
+- `PipeMusicExtractor`: the PipePipeExtractor engine, including service definitions, search,
+  stream extraction, cookies, request headers and platform-specific handling.
+- The existing downloader, cookie store, playback data-source and FFmpeg integrations.
+- The upstream application namespace and application ID, to keep compatibility with the
+  existing codebase and update channel.
 
-## Screenshots
+### What changed in PipeMusic
 
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/00-v2.png" width=640>](fastlane/metadata/android/en-US/images/phoneScreenshots/00-v1.png)
+- A new single-activity Jetpack Compose interface: Discover, Search, Library, Playlists and
+  Profile, plus a mini player and a full-screen player.
+- An audio-only `MusicPlayerService` built on ExoPlayer 2.18.7 and `MediaSessionCompat`.
+- A separate Room database for tracks, playlists, play history and search history.
+- Local folder import with recursive SAF scanning, private-directory copies, metadata and
+  embedded artwork extraction, progress, cancellation and deduplication.
+- Playlist management, favorites, recently played, recently added, queue editing, sequential,
+  repeat-all, repeat-one and shuffle playback.
+- Eight preset themes, custom accent color, light/dark/system/AMOLED modes, Android 12+ dynamic
+  color, artwork tinting and persistent preferences.
+- Background playback, media notification, lock-screen controls, headset controls and a sleep
+  timer.
 
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/01-v3.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/01-v3.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/02-v3.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/02-v3.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/03-v3.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/03-v3.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/04-v3.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/04-v3.png)
-<br/>
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/05-v3.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/05-v3.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/06-v3.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/06-v3.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/07-v3.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/07-v3.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/08-v3.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/08-v3.png)
-<br/>
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/09-v3.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/09-v3.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/10-v3.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/10-v3.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/11-v3.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/11-v3.png)
-[<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/12-v3.png" width=160>](fastlane/metadata/android/en-US/images/phoneScreenshots/12-v3.png)
+## Features
 
+- Search across the services supported by PipeMusicExtractor, including YouTube, SoundCloud,
+  Bandcamp, BiliBili, Niconico, PeerTube and media.ccc.de.
+- Stream search results directly and add them to the playback queue.
+- Download audio into the app-private library where the source exposes a downloadable audio
+  stream. HLS-only sources are handled through FFmpeg when possible.
+- Import an entire local folder: files are copied into the app-private `music` directory so they
+  remain available without external storage permissions.
+- Create, rename and delete playlists; add, remove and reorder tracks.
+- Favorite tracks and browse listening history.
+- Control playback from the notification, lock screen or a wired/Bluetooth headset.
 
-## About this fork
+## Project layout
 
-Due to differences in development philosophy, I forked NewPipe in early 2022 and began independent development based on it.
+```text
+PipeMusic/                 # repository root; see the note below
+├── PipeMusicClient/       # Android app, Compose UI, music services
+│   ├── app/
+│   └── gradle/
+├── PipeMusicExtractor/    # PipePipeExtractor engine (composite build)
+├── fastlane/              # Store metadata
+└── README.md
+```
 
-This means that PipePipe neither receives updates from NewPipe nor pushes updates to NewPipe. They have become two separate projects. Issues that occur in NewPipe don't necessarily happen in PipePipe, and changes made in NewPipe may not be adopted by PipePipe. In contrast, forks like Tubular track the latest version of NewPipe and develop based on it.
+The module directories in this fork are `PipeMusicClient` and `PipeMusicExtractor`. If you
+already have an older clone, use these new directory names (or rename the old directories) before
+running the build. The name of the enclosing checkout directory does not matter to Gradle; it can
+still be the upstream name `PipePipe` in an existing working copy. A fresh clone can use
+`PipeMusic` as the checkout directory name.
 
-Making a hard fork allows us to effectively address issues with quick fixes and maintain frequent feature updates.
+The Android client includes the new music implementation in:
 
-## About sign in
+```text
+PipeMusicClient/app/src/main/java/org/schabi/newpipe/music/
+├── data/        # Room database, repository and preferences
+├── local/       # folder scanning, metadata and import worker
+├── playback/    # queue, service, controller and notification
+├── stream/      # search, audio selection and download worker
+└── ui/          # Compose theme, screens, components and view model
+```
 
-PipePipe will ONLY use the login cookie for the specified scenarios you set. You can configure it in "Cookie Functions."
+## Build
 
-For YouTube, the cookie will only be used when retrieving playback streams.
+Requirements:
 
-## Contribute
+- JDK 25
+- Android SDK with compile SDK 37 and build tools accepted by the project
+- Windows, macOS or Linux
 
-Issues and PRs are welcomed. Please note that I will **NOT** accept service requests. 
+Create `PipeMusicClient/local.properties` if your SDK is not in the default location:
 
-Anyone interested in creating their own service is encouraged to fork this repository.
+```properties
+sdk.dir=/path/to/Android/Sdk
+```
 
-## Donation
+Build the debug APK from the repository root:
 
-If you find PipePipe useful, please consider becoming a supporter on Ko-Fi. Your support is important to me and helps me add more exciting new features. Every bit counts! 😇
+```bash
+cd PipeMusicClient
+./gradlew :app:assembleDebug
+```
 
-Liberapay: https://liberapay.com/PipePipe
+On Windows:
 
-Ko-fi: https://ko-fi.com/pipepipe
+```powershell
+cd PipeMusicClient
+.\gradlew.bat :app:assembleDebug
+```
 
-## Community
+The APK is written to `PipeMusicClient/app/build/outputs/apk/debug/`. The ABI-split and universal
+debug variants are generated by the project configuration.
 
-[PipePipe Wiki](https://priveetee.github.io/Docs-PipePipe) maintained by [@Priveetee](https://github.com/Priveetee)
+Run the unit tests and lint:
 
-## Special Thanks
+```bash
+./gradlew :app:testDebugUnitTest :app:lintDebug
+```
 
-[Priveetee](https://github.com/Priveetee) for [researching SABR](https://priveetee.github.io/Docs-PipePipe/developer-guide/introduction.html) and implementing support for it.
+## Compatibility notes
 
-[AioiLight](https://github.com/AioiLight) for providing some code of NicoNico service.
+- The application ID is intentionally still `InfinityLoop1309.NewPipeEnhanced` (with `.debug` for
+  debug builds). Changing it would break the existing update channel and installed-data
+  compatibility.
+- The Java/Kotlin package namespace is still `org.schabi.newpipe` for the same reason. This is a
+  source-level compatibility detail, not the product name.
+- The Gradle project names and module directories are `PipeMusic`, `PipeMusicClient` and
+  `PipeMusicExtractor`. The extractor Maven coordinate is
+  `com.github.InfinityLoop1308.PipeMusicExtractor:extractor`.
+- The top-level directory name is independent from the Gradle project name. Existing clones may
+  still have a `PipePipe` checkout folder; only the module names inside it were changed in this
+  rebranding.
+- Existing git history and upstream copyright notices are retained. The git submodule names in
+  `.gitmodules` may still reference upstream repository names; their checkout paths are updated
+  for this fork.
+
+## Known limitations
+
+- Some services require login, cookies, a residential IP address or bot verification. Playback
+  and download availability can therefore vary by network and region.
+- Downloads are saved in the app's private storage. Uninstalling the app removes them; back up
+  your files if needed.
+- The application is delivered as a debug APK from source; it is not an official PipePipe or
+  NewPipe release.
+
+## License
+
+PipeMusic is distributed under the GNU General Public License v3.0. See [LICENSE](LICENSE).
+
+Upstream projects:
+
+- [PipePipe](https://github.com/InfinityLoop1308/PipePipe)
+- [NewPipe](https://github.com/TeamNewPipe/NewPipe)
+
+All project documentation in this repository is maintained in English.

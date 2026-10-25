@@ -1,14 +1,23 @@
-Thanks for your interest in contributing to the translation!
+# PipeMusic translation guide
 
-We use AI to support translation in the following languages:
-Simplified Chinese, Traditional Chinese, Japanese, Vietnamese, French, German, Italian, Spanish
+Thanks for contributing to PipeMusic translations.
 
-DO NOT modify \n, " and other "strange" symbols - they are used for formatting. Only change the text part, unless you know what you are doing!
+PipeMusic is a music-first fork of PipePipe. The app resources still use the upstream
+`org.schabi.newpipe` package namespace and the `InfinityLoop1309.NewPipeEnhanced`
+application ID for compatibility with the existing codebase and update channel.
 
-If you want to modify a translation already supported by AI:
-1. Find the translation file corresponding to your language, for example, Japanese is [app/src/main/res/values-ja/strings.xml](https://github.com/InfinityLoop1308/PipePipeClient/blob/dev/app/src/main/res/values-ja/strings.xml).
-2. Click "Fork and edit this file"
-3. Make sure to only change the translation of problematic entries, keep other entries unchanged, and do not change the order of entries.
-4. Save & make a pull request (will be done automatically)
+Most translations are inherited from the upstream PipePipe/NewPipe resources. New or
+changed strings should be written in English first, then translated into the
+language-specific `values-*` directories.
 
-If you want to modify a translation not supported by AI, please use `translator.py` for an initial translation and then polish it to ensure the correctness of the format and order. It is recommended to open an issue and contact me before deciding on the translation.
+## Editing a translation
+
+1. Find the string resource for your language, for example Japanese:
+   `PipeMusicClient/app/src/main/res/values-ja/strings.xml`.
+2. Change only the text of the affected entries. Keep the order of entries and do not
+   modify formatting placeholders such as `%s`, `%1$s` or escaped newlines.
+3. Open a pull request describing the language and the strings changed.
+
+If a language is not maintained in this fork yet, copy the English resource file into a
+new `values-<language>` directory and translate the entries. Keep all documentation in
+this repository in English; localized app strings belong in the Android resource files.

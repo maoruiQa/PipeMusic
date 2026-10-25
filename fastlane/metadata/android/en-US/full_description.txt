@@ -1,15 +1,16 @@
-NewPipe, reimagined: faster, more stable, and packed with more features.
+PipeMusic is a music-first, libre Android player built on the PipePipe codebase.
 
-<b>Beyond NewPipe</b>
+It keeps PipePipe's multi-platform extraction and download engine, but replaces the video-oriented interface with a focused listening experience: search for music across supported services, stream audio, download tracks for offline listening, import your own library from a folder, build playlists, and enjoy a modern Compose UI with multiple themes and a customizable accent color.
 
-* SponsorBlock (YouTube & BiliBili)
-* ReturnYouTubeDislike
-* Bullet comments / Live Chats
-* Search filters
-* Search & sort in local playlists
-* Filter out unwanted items by keywords/channels/...
-* Music player mode & Background playing
-* Sleep timer
-* Fullscreen gestures
-* Login to watch restricted / premium contents
-* … and many minor improvements
+PipeMusic is an independent fork. It is derived from PipePipe, which in turn is a fork of NewPipe. PipeMusic is not affiliated with or endorsed by the PipePipe or NewPipe projects.
+
+Features:
+- Search across YouTube, SoundCloud, Bandcamp, BiliBili, Niconico, PeerTube, media.ccc.de and other services supported by the bundled extractor.
+- Stream audio, queue tracks, and use sequential, repeat-all, repeat-one and shuffle playback.
+- Download audio into the app's private library when the source permits direct audio download.
+- Import an entire folder of local audio into the private library, with metadata and embedded artwork.
+- Create playlists, favorite tracks, and browse recently played or recently added music.
+- Background playback with a media notification, lock-screen controls, headset controls and a sleep timer.
+- Eight preset themes, a custom accent color picker, light/dark/system/AMOLED modes, Android 12+ dynamic color and artwork-based tinting.
+
+License: GPL-3.0. PipeMusic preserves the upstream copyright notices and source code history.
