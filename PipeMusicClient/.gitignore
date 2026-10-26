@@ -1,0 +1,26 @@
+.gradle/
+local.properties
+.DS_Store
+build/
+/*.log
+captures/
+.idea/
+*.iml
+*~
+.weblate
+*.class
+app/debug/
+app/release/
+.kotlin/
+log/
+/local-pr-desc/
+
+# vscode / eclipse files
+*.classpath
+*.project
+*.settings
+bin/
+.vscode/
+*.code-workspace
+/config.py
+__pycache__

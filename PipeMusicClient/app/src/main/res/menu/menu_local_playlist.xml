@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+            android:id="@+id/action_search_local"
+            android:icon="@drawable/ic_filter_alt"
+            android:orderInCategory="3"
+            android:title="@string/search_in_page"
+            app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/menu_item_sort"
+        android:orderInCategory="2"
+        android:title="@string/sort"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/ic_sort" />
+
+    <item
+        android:id="@+id/action_multi_select"
+        android:title="@string/multi_select"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_item_share_playlist"
+        android:icon="@drawable/ic_share"
+        android:title="@string/share"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_item_rename_playlist"
+        android:title="@string/rename_playlist"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_item_remove_watched"
+        android:title="@string/remove_watched"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_item_remove_duplicates"
+        android:title="@string/remove_duplicates"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_item_download_all"
+        android:title="@string/download_all"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_item_import_urls"
+        android:title="@string/import_urls_from_file"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_item_append_playlist"
+        android:title="@string/add_to_playlist"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_item_add_to_home_screen"
+        android:title="@string/add_to_home_screen"
+        android:visible="false"
+        app:showAsAction="never" />
+
+</menu>

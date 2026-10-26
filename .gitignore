@@ -1,3 +1,11 @@
 /.idea
 /web
 /nightly
+
+# Local tool configuration
+.claude/
+local.properties
+
+# Build artifacts
+*.apk
+*.aab
