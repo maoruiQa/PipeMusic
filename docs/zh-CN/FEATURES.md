@@ -1,6 +1,8 @@
 # 功能与使用（中文辅助）
 
 > 对应英文文档：[../FEATURES.md](../FEATURES.md)。两者冲突时以英文为准。
+> 各页面截图见 [../images/screenshots](../images/screenshots)，或在
+> [README.zh-CN.md](../../README.zh-CN.md#截图) 中查看汇总。
 
 ## 页面
 

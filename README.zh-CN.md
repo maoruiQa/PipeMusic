@@ -32,6 +32,16 @@ PipeMusic 与 PipePipe、NewPipe 项目没有隶属或背书关系，上游版�
 - 播放控制：后台播放、媒体通知、锁屏控制、耳机按键、睡眠定时。
 - 外观：8 套预设主题、自定义主色、浅色/深色/跟随系统/纯黑、Android 12+ 动态取色、封面取色。
 
+## 截图
+
+| 发现 | 搜索 |
+| :---: | :---: |
+| [<img src="docs/images/screenshots/01-discover.png" width="300" alt="发现页：问候语、搜索入口、继续聆听卡片与平台快捷入口">](docs/images/screenshots/01-discover.png) | [<img src="docs/images/screenshots/02-search.png" width="300" alt="搜索页：关键词、平台切换与带下载操作的结果列表">](docs/images/screenshots/02-search.png) |
+| **曲库** | **外观** |
+| [<img src="docs/images/screenshots/03-library.png" width="300" alt="曲库页：歌曲数、总时长、占用空间、导入入口与筛选">](docs/images/screenshots/03-library.png) | [<img src="docs/images/screenshots/04-theme.png" width="300" alt="主题页：预设主题、自定义主色与外观模式">](docs/images/screenshots/04-theme.png) |
+
+截图取自运行 debug 版本的真机。仅裁掉了系统状态栏与手势条，其余内容未做修饰，颜色与布局与当前源码一致。
+
 ## 下载与构建
 
 - 预编译 APK 见 [Releases](https://github.com/maoruiQa/PipeMusic/releases)：不确定设备架构时选

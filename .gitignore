@@ -9,3 +9,6 @@ local.properties
 # Build artifacts
 *.apk
 *.aab
+
+# Raw screenshots; processed copies used by the docs live in docs/images/screenshots
+/screenshots/

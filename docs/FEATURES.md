@@ -3,6 +3,9 @@
 PipeMusic is a music player. Video playback, subscriptions, comments and channel pages are not
 part of the product UI.
 
+Screenshots of the main screens are stored in [`images/screenshots`](images/screenshots); the
+[project README](../README.md#screenshots) shows them as a gallery.
+
 ## Screens
 
 ### Home
@@ -11,6 +14,8 @@ Shows a greeting, the search entry and the theme shortcut. The main card offers 
 listening** with artwork, progress and a play button. Below it: recently played, service shortcuts,
 recently added and downloaded music.
 
+<img src="images/screenshots/01-discover.png" width="260" alt="Discover screen">
+
 ### Search
 
 Type a query to search the selected service. Use the service chips to switch between YouTube,
@@ -18,12 +23,16 @@ SoundCloud, Bandcamp, BiliBili, Niconico, PeerTube, media.ccc.de and the other s
 the extractor. Results are paginated; each row offers download and a context menu. Pasting or
 sharing a link into the app resolves the track directly.
 
+<img src="images/screenshots/02-search.png" width="260" alt="Search screen">
+
 ### Library
 
 Shows track count, total duration and storage used. **Import folder** opens the system folder
 picker and copies every supported audio file (mp3, m4a, aac, flac, wav, ogg, opus) into the private
 library, including metadata and embedded artwork. Filters: All, Downloaded, Recently added,
 Favourites. Multi-selection enables batch add-to-playlist and delete.
+
+<img src="images/screenshots/03-library.png" width="260" alt="Library screen">
 
 ### Playlists
 
@@ -64,6 +73,8 @@ backup. **Uninstalling the app removes them**, so export anything you want to ke
 Eight preset themes, a custom accent colour with an HSV picker and hex input, light, dark, system
 and AMOLED modes, Android 12+ dynamic colour, and optional artwork-based tinting on the player
 screen. All choices persist across restarts.
+
+<img src="images/screenshots/04-theme.png" width="260" alt="Theme and appearance settings">
 
 ## Permissions
 

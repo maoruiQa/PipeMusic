@@ -71,6 +71,17 @@ build is a debug-signed APK built directly from this source tree.
 - Favorite tracks and browse listening history.
 - Control playback from the notification, lock screen or a wired/Bluetooth headset.
 
+## Screenshots
+
+| Discover | Search |
+| :---: | :---: |
+| [<img src="docs/images/screenshots/01-discover.png" width="300" alt="Discover screen with greeting, search entry, continue listening card and service shortcuts">](docs/images/screenshots/01-discover.png) | [<img src="docs/images/screenshots/02-search.png" width="300" alt="Search screen with a query, service selector chips and results with download actions">](docs/images/screenshots/02-search.png) |
+| **Library** | **Appearance** |
+| [<img src="docs/images/screenshots/03-library.png" width="300" alt="Library screen with song count, duration, storage, folder import and filters">](docs/images/screenshots/03-library.png) | [<img src="docs/images/screenshots/04-theme.png" width="300" alt="Theme screen with preset themes, custom accent color picker and appearance modes">](docs/images/screenshots/04-theme.png) |
+
+Screenshots are captured on a phone running the debug build. The status bar and gesture bar are
+cropped; nothing else is retouched, so colours and layout match the current source tree.
+
 ## Project layout
 
 ```text
