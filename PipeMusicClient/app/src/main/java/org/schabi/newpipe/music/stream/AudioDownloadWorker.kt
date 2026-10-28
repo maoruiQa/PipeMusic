@@ -24,6 +24,7 @@ import com.arthenica.ffmpegkit.ReturnCode
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 import org.schabi.newpipe.DownloaderImpl
@@ -86,6 +87,35 @@ class AudioDownloadWorker(
 
             repository.setDownloadState(trackId, DOWNLOADING, 0, null)
             val baseName = safeName(track.title)
+            if (stream.sabrStream != null) {
+                val sabrFile = File(repository.musicDir, "${baseName}_${track.id}.${stream.suffix}")
+                withContext(Dispatchers.IO) {
+                    var lastUpdate = 0L
+                    SabrAudioDownloader(
+                        File(applicationContext.cacheDir, "music-sabr/${track.id}"),
+                        { isStopped }
+                    ) { progress ->
+                        val now = System.currentTimeMillis()
+                        if (now - lastUpdate > 500) {
+                            lastUpdate = now
+                            runBlocking {
+                                repository.setDownloadState(trackId, DOWNLOADING, progress, null)
+                            }
+                        }
+                    }.download(stream.sabrStream, sabrFile)
+                }
+                repository.setDownloadState(trackId, DOWNLOADING, 99, null)
+                val sabrArtwork = withContext(Dispatchers.IO) { downloadArtwork(track) }
+                repository.completeDownload(
+                    trackId,
+                    sabrFile.absolutePath,
+                    sabrFile.length(),
+                    stream.mimeType,
+                    sabrArtwork
+                )
+                notifyFinished(track, string(R.string.pm_download_complete))
+                return Result.success(workDataOf(KEY_PATH to sabrFile.absolutePath))
+            }
             if (stream.isHls) {
                 val hlsFile = downloadHlsFile(stream, track, baseName)
                 repository.setDownloadState(trackId, DOWNLOADING, 99, null)

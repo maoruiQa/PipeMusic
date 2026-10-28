@@ -7,6 +7,7 @@ import org.schabi.newpipe.DownloaderImpl
 import org.schabi.newpipe.R
 import org.schabi.newpipe.extractor.ServiceList
 import org.schabi.newpipe.extractor.services.bilibili.BilibiliService
+import org.schabi.newpipe.extractor.services.youtube.sabr.YoutubeSabrInfo
 import org.schabi.newpipe.extractor.stream.AudioStream
 import org.schabi.newpipe.extractor.stream.DeliveryMethod
 import org.schabi.newpipe.extractor.stream.StreamInfo
@@ -14,6 +15,7 @@ import org.schabi.newpipe.extractor.stream.VideoStream
 import org.schabi.newpipe.music.data.db.TrackEntity
 import org.schabi.newpipe.player.helper.PlayerDataSource
 import org.schabi.newpipe.player.resolver.AudioPlaybackResolver
+import org.schabi.newpipe.util.AudioStreamSelector
 import org.schabi.newpipe.util.ExtractorHelper
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
@@ -30,7 +32,9 @@ data class DownloadableStream(
     val mimeType: String,
     val needsAudioExtraction: Boolean,
     val headers: Map<String, String>,
-    val isHls: Boolean = false
+    val isHls: Boolean = false,
+    /** Set when the audio is only reachable through a YouTube SABR session. */
+    val sabrStream: AudioStream? = null
 )
 
 /**
@@ -110,6 +114,25 @@ class AudioStreamResolver(context: Context) {
             )
         }
 
+        // YouTube only serves SABR audio now; it has no URL and is fetched segment by segment.
+        val sabrCandidates = info.audioStreams.filter { stream ->
+            stream.deliveryMethod == DeliveryMethod.SABR &&
+                stream.deliveryMethodInfo is YoutubeSabrInfo &&
+                stream.format != null
+        }
+        val sabr = chooseByQuality(preferPlaybackTrack(sabrCandidates), quality)
+        if (sabr != null) {
+            val suffix = sabr.format?.suffix ?: "m4a"
+            return DownloadableStream(
+                url = "",
+                suffix = suffix,
+                mimeType = sabr.format?.mimeType ?: "audio/mp4",
+                needsAudioExtraction = false,
+                headers = emptyMap(),
+                sabrStream = sabr
+            )
+        }
+
         // BiliBili exposes a complete fragmented MP4 audio file at the audio stream URL, so a
         // plain download works even though playback uses a generated DASH manifest.
         if (info.serviceId == ServiceList.BiliBili.serviceId) {
@@ -165,6 +188,19 @@ class AudioStreamResolver(context: Context) {
             }
             else -> sorted.first()
         }
+    }
+
+    /**
+     * Multi-language videos expose one SABR audio format per track. Keep the track playback would
+     * pick so a dubbed version is not downloaded just because it has a higher bitrate.
+     */
+    private fun preferPlaybackTrack(streams: List<AudioStream>): List<AudioStream> {
+        if (streams.isEmpty()) {
+            return streams
+        }
+        val index = AudioStreamSelector.getDefaultAudioFormat(appContext, streams)
+        val trackId = streams.getOrNull(index)?.audioTrackId ?: return streams
+        return streams.filter { it.audioTrackId == trackId }.ifEmpty { streams }
     }
 
     private fun prepareUrl(raw: String, serviceId: Int): Pair<String, Map<String, String>> {
