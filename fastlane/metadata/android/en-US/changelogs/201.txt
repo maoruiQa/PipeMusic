@@ -1,0 +1,11 @@
+### New Features
+
+- Sleep timer: set a custom duration (1 minute to 24 hours); the timer sheet shows when playback will pause
+- Update check: PipeMusic looks for new GitHub releases once a day (can be turned off in Profile > About) or on demand, and offers the APK for your device
+- New launcher icon inspired by the PipePipe logo, with a themed (monochrome) icon on Android 13+
+
+### Bug Fixes
+
+- Fixed the mini player showing the cover of an earlier song after the queue advanced in the background
+- Fixed the lock screen and notification controls losing the album art once a song started
+- Fixed YouTube audio downloads by downloading through SABR sessions
