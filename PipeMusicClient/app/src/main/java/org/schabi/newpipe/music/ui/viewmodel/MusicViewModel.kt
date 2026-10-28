@@ -2,6 +2,7 @@ package org.schabi.newpipe.music.ui.viewmodel
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.schabi.newpipe.BuildConfig
 import org.schabi.newpipe.R
 import org.schabi.newpipe.extractor.Page
 import org.schabi.newpipe.extractor.stream.StreamInfoItem
@@ -38,6 +40,9 @@ import org.schabi.newpipe.music.local.LocalImportWorker
 import org.schabi.newpipe.music.playback.MusicPlayerController
 import org.schabi.newpipe.music.stream.AudioDownloadWorker
 import org.schabi.newpipe.music.stream.MusicService
+import org.schabi.newpipe.music.update.AppVersion
+import org.schabi.newpipe.music.update.ReleaseInfo
+import org.schabi.newpipe.music.update.UpdateChecker
 import org.schabi.newpipe.util.ExtractorHelper
 
 data class SearchSong(
@@ -61,6 +66,15 @@ data class SearchUiState(
     /** True once a search was submitted for the current query (enter/search pressed). */
     val searchSubmitted: Boolean = false
 )
+
+enum class UpdateCheckResult {
+    AVAILABLE,
+    UP_TO_DATE,
+    FAILED
+}
+
+private const val UPDATE_TAG = "MusicUpdate"
+private const val UPDATE_CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000L
 
 enum class DownloadFeedback {
     STARTED,
@@ -551,6 +565,69 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
             else -> appContext.getString(R.string.pm_error_search_failed)
         }
     }
+
+    // region updates
+
+    private val _availableUpdate = MutableStateFlow<ReleaseInfo?>(null)
+    /** Newer GitHub release waiting for the user's decision, shown as a dialog. */
+    val availableUpdate: StateFlow<ReleaseInfo?> = _availableUpdate.asStateFlow()
+
+    private val _checkingUpdate = MutableStateFlow(false)
+    val checkingUpdate: StateFlow<Boolean> = _checkingUpdate.asStateFlow()
+
+    init {
+        val prefs = MusicGraph.preferences
+        if (prefs.autoUpdateCheck.value &&
+            System.currentTimeMillis() - prefs.lastUpdateCheck > UPDATE_CHECK_INTERVAL_MS
+        ) {
+            checkForUpdates(manual = false)
+        }
+    }
+
+    /**
+     * Looks up the latest GitHub release. Automatic checks are silent on failure and skip the
+     * version the user dismissed; manual checks always report through [onResult].
+     */
+    fun checkForUpdates(manual: Boolean, onResult: (UpdateCheckResult) -> Unit = {}) {
+        if (_checkingUpdate.value) {
+            return
+        }
+        _checkingUpdate.value = true
+        scope.launch {
+            val outcome = try {
+                val release = UpdateChecker.latestRelease()
+                MusicGraph.preferences.lastUpdateCheck = System.currentTimeMillis()
+                val skipped = !manual &&
+                    release.version == MusicGraph.preferences.skippedUpdateVersion
+                if (AppVersion.isNewer(release.version, BuildConfig.VERSION_NAME) && !skipped) {
+                    _availableUpdate.value = release
+                    UpdateCheckResult.AVAILABLE
+                } else {
+                    UpdateCheckResult.UP_TO_DATE
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                Log.w(UPDATE_TAG, "Update check failed: ${error.javaClass.simpleName}")
+                UpdateCheckResult.FAILED
+            } finally {
+                _checkingUpdate.value = false
+            }
+            if (manual) {
+                onResult(outcome)
+            }
+        }
+    }
+
+    fun dismissUpdate(skipVersion: Boolean) {
+        val release = _availableUpdate.value ?: return
+        if (skipVersion) {
+            MusicGraph.preferences.skippedUpdateVersion = release.version
+        }
+        _availableUpdate.value = null
+    }
+
+    // endregion
 
     override fun onCleared() {
         searchJob?.cancel()

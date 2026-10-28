@@ -343,4 +343,16 @@
     <string name="pm_sleep_start">Запустить</string>
     <string name="pm_sleep_custom_invalid">Введите время от 1 минуты до 24 часов</string>
     <string name="pm_sleep_ends_at">Пауза в %1$s</string>
+    <string name="pm_check_update">Проверить обновления</string>
+    <string name="pm_check_update_sub">Найти новую версию на GitHub</string>
+    <string name="pm_update_checking">Проверка…</string>
+    <string name="pm_auto_update">Проверять автоматически</string>
+    <string name="pm_auto_update_sub">Проверять новые версии на GitHub раз в день</string>
+    <string name="pm_update_available_title">Доступна PipeMusic %1$s</string>
+    <string name="pm_update_current_version">Установленная версия: %1$s</string>
+    <string name="pm_update_download">Скачать</string>
+    <string name="pm_update_skip">Пропустить эту версию</string>
+    <string name="pm_update_later">Позже</string>
+    <string name="pm_update_up_to_date">У вас последняя версия</string>
+    <string name="pm_update_check_failed">Не удалось проверить обновления. Проверьте подключение и повторите попытку.</string>
 </resources>

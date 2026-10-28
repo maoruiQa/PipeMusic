@@ -343,4 +343,16 @@
     <string name="pm_sleep_start">Start</string>
     <string name="pm_sleep_custom_invalid">Enter a duration between 1 minute and 24 hours</string>
     <string name="pm_sleep_ends_at">Pauses at %1$s</string>
+    <string name="pm_check_update">Check for updates</string>
+    <string name="pm_check_update_sub">Look for a new release on GitHub</string>
+    <string name="pm_update_checking">Checking…</string>
+    <string name="pm_auto_update">Check automatically</string>
+    <string name="pm_auto_update_sub">Check GitHub for new releases once a day</string>
+    <string name="pm_update_available_title">PipeMusic %1$s is available</string>
+    <string name="pm_update_current_version">Installed version: %1$s</string>
+    <string name="pm_update_download">Download</string>
+    <string name="pm_update_skip">Skip this version</string>
+    <string name="pm_update_later">Later</string>
+    <string name="pm_update_up_to_date">You are on the latest version</string>
+    <string name="pm_update_check_failed">Could not check for updates. Check your connection and try again.</string>
 </resources>

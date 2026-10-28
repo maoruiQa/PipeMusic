@@ -343,4 +343,16 @@
     <string name="pm_sleep_start">開始</string>
     <string name="pm_sleep_custom_invalid">1 分から 24 時間の範囲で入力してください</string>
     <string name="pm_sleep_ends_at">%1$s に一時停止</string>
+    <string name="pm_check_update">アップデートを確認</string>
+    <string name="pm_check_update_sub">GitHub で新しいリリースを探します</string>
+    <string name="pm_update_checking">確認中…</string>
+    <string name="pm_auto_update">自動的に確認</string>
+    <string name="pm_auto_update_sub">1 日 1 回 GitHub の新しいリリースを確認</string>
+    <string name="pm_update_available_title">PipeMusic %1$s が利用可能です</string>
+    <string name="pm_update_current_version">インストール済みのバージョン: %1$s</string>
+    <string name="pm_update_download">ダウンロード</string>
+    <string name="pm_update_skip">このバージョンをスキップ</string>
+    <string name="pm_update_later">後で</string>
+    <string name="pm_update_up_to_date">最新バージョンです</string>
+    <string name="pm_update_check_failed">アップデートを確認できませんでした。接続を確認して再試行してください。</string>
 </resources>

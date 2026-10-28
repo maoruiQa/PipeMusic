@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountCircle
+import androidx.compose.material.icons.rounded.Autorenew
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.DeleteSweep
@@ -31,12 +32,15 @@ import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Public
+import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -78,6 +82,10 @@ fun ProfileScreen(
     onOpenTheme: () -> Unit,
     onQualityChange: (String) -> Unit,
     onSleepTimer: () -> Unit,
+    autoUpdateCheck: Boolean,
+    checkingUpdate: Boolean,
+    onAutoUpdateChange: (Boolean) -> Unit,
+    onCheckUpdate: () -> Unit,
     onClearHistory: () -> Unit,
     onDeleteAll: () -> Unit,
     onOpenDownloads: () -> Unit,
@@ -393,6 +401,37 @@ fun ProfileScreen(
                     title = stringResource(R.string.pm_license),
                     subtitle = stringResource(R.string.pm_license_sub),
                     onClick = { licenseDialog = true }
+                )
+                SettingsRow(
+                    icon = Icons.Rounded.SystemUpdate,
+                    title = stringResource(R.string.pm_check_update),
+                    subtitle = stringResource(
+                        if (checkingUpdate) R.string.pm_update_checking
+                        else R.string.pm_check_update_sub
+                    ),
+                    onClick = onCheckUpdate,
+                    trailing = if (checkingUpdate) {
+                        {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp
+                            )
+                        }
+                    } else {
+                        null
+                    }
+                )
+                SettingsRow(
+                    icon = Icons.Rounded.Autorenew,
+                    title = stringResource(R.string.pm_auto_update),
+                    subtitle = stringResource(R.string.pm_auto_update_sub),
+                    onClick = { onAutoUpdateChange(!autoUpdateCheck) },
+                    trailing = {
+                        Switch(
+                            checked = autoUpdateCheck,
+                            onCheckedChange = onAutoUpdateChange
+                        )
+                    }
                 )
                 SettingsRow(
                     icon = Icons.Rounded.MusicNote,
@@ -781,7 +820,8 @@ private fun SettingsRow(
     title: String,
     subtitle: String,
     onClick: () -> Unit,
-    danger: Boolean = false
+    danger: Boolean = false,
+    trailing: (@Composable () -> Unit)? = null
 ) {
     val colors = MaterialTheme.colorScheme
     Row(
@@ -811,10 +851,14 @@ private fun SettingsRow(
                 color = colors.onSurfaceVariant
             )
         }
-        Icon(
-            imageVector = Icons.Rounded.ChevronRight,
-            contentDescription = null,
-            tint = colors.onSurfaceVariant.copy(alpha = 0.6f)
-        )
+        if (trailing != null) {
+            trailing()
+        } else {
+            Icon(
+                imageVector = Icons.Rounded.ChevronRight,
+                contentDescription = null,
+                tint = colors.onSurfaceVariant.copy(alpha = 0.6f)
+            )
+        }
     }
 }

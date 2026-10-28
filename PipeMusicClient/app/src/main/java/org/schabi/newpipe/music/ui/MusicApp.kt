@@ -2,6 +2,7 @@ package org.schabi.newpipe.music.ui
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -59,6 +60,7 @@ import org.schabi.newpipe.music.ui.components.MiniPlayer
 import org.schabi.newpipe.music.ui.components.MusicBottomBar
 import org.schabi.newpipe.music.ui.components.QueueSheet
 import org.schabi.newpipe.music.ui.components.SleepTimerSheet
+import org.schabi.newpipe.music.ui.components.UpdateDialog
 import org.schabi.newpipe.music.ui.components.TrackActionsSheet
 import org.schabi.newpipe.music.ui.screens.HomeScreen
 import org.schabi.newpipe.music.ui.screens.LibraryScreen
@@ -70,6 +72,7 @@ import org.schabi.newpipe.music.ui.theme.ColorSchemeFactory
 import org.schabi.newpipe.music.ui.theme.ThemeSettingsScreen
 import org.schabi.newpipe.music.ui.viewmodel.DownloadFeedback
 import org.schabi.newpipe.music.ui.viewmodel.MusicViewModel
+import org.schabi.newpipe.music.ui.viewmodel.UpdateCheckResult
 
 @Composable
 fun MusicApp(
@@ -89,6 +92,9 @@ fun MusicApp(
     val language by MusicGraph.preferences.language.collectAsStateWithLifecycle()
     val accountState by viewModel.accountState.collectAsStateWithLifecycle()
     val player by MusicPlayerController.state.collectAsStateWithLifecycle()
+    val autoUpdateCheck by MusicGraph.preferences.autoUpdateCheck.collectAsStateWithLifecycle()
+    val checkingUpdate by viewModel.checkingUpdate.collectAsStateWithLifecycle()
+    val availableUpdate by viewModel.availableUpdate.collectAsStateWithLifecycle()
 
     val tracks by viewModel.tracks.collectAsStateWithLifecycle()
     val downloadedTracks by viewModel.downloadedTracks.collectAsStateWithLifecycle()
@@ -439,6 +445,29 @@ fun MusicApp(
                                     MusicGraph.preferences.setDownloadQuality(it)
                                 },
                                 onSleepTimer = { showSleepSheet = true },
+                                autoUpdateCheck = autoUpdateCheck,
+                                checkingUpdate = checkingUpdate,
+                                onAutoUpdateChange = {
+                                    MusicGraph.preferences.setAutoUpdateCheck(it)
+                                },
+                                onCheckUpdate = {
+                                    viewModel.checkForUpdates(manual = true) { result ->
+                                        val message = when (result) {
+                                            UpdateCheckResult.AVAILABLE -> null
+                                            UpdateCheckResult.UP_TO_DATE ->
+                                                R.string.pm_update_up_to_date
+                                            UpdateCheckResult.FAILED ->
+                                                R.string.pm_update_check_failed
+                                        }
+                                        if (message != null) {
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar(
+                                                    context.getString(message)
+                                                )
+                                            }
+                                        }
+                                    }
+                                },
                                 onClearHistory = viewModel::clearPlayHistory,
                                 onDeleteAll = {
                                     viewModel.deleteTracks(
@@ -672,6 +701,21 @@ fun MusicApp(
                 showQueueSheet = false
             },
             onRemove = { index -> MusicPlayerController.removeFromQueue(context, index) }
+        )
+    }
+
+    availableUpdate?.let { release ->
+        UpdateDialog(
+            release = release,
+            onDownload = {
+                val url = release.downloadUrl ?: release.pageUrl
+                runCatching {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                }
+                viewModel.dismissUpdate(skipVersion = false)
+            },
+            onSkip = { viewModel.dismissUpdate(skipVersion = true) },
+            onLater = { viewModel.dismissUpdate(skipVersion = false) }
         )
     }
 

@@ -113,6 +113,23 @@ class MusicPreferences(context: Context) {
         _language.value = tag
     }
 
+    private val _autoUpdateCheck = MutableStateFlow(prefs.getBoolean(KEY_AUTO_UPDATE, true))
+    val autoUpdateCheck: StateFlow<Boolean> = _autoUpdateCheck.asStateFlow()
+
+    fun setAutoUpdateCheck(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_AUTO_UPDATE, enabled).apply()
+        _autoUpdateCheck.value = enabled
+    }
+
+    var lastUpdateCheck: Long
+        get() = prefs.getLong(KEY_LAST_UPDATE_CHECK, 0)
+        set(value) = prefs.edit().putLong(KEY_LAST_UPDATE_CHECK, value).apply()
+
+    /** Release version the user chose to skip; automatic checks stay quiet about it. */
+    var skippedUpdateVersion: String?
+        get() = prefs.getString(KEY_SKIPPED_UPDATE, null)
+        set(value) = prefs.edit().putString(KEY_SKIPPED_UPDATE, value).apply()
+
     fun saveQueue(snapshot: QueueSnapshot) {
         val json = JSONObject().apply {
             put("ids", JSONArray(snapshot.ids))
@@ -159,5 +176,8 @@ class MusicPreferences(context: Context) {
         const val KEY_SERVICE = "preferred_service"
         const val KEY_LANGUAGE = "ui_language"
         const val KEY_QUEUE = "last_queue"
+        const val KEY_AUTO_UPDATE = "auto_update_check"
+        const val KEY_LAST_UPDATE_CHECK = "last_update_check"
+        const val KEY_SKIPPED_UPDATE = "skipped_update_version"
     }
 }
