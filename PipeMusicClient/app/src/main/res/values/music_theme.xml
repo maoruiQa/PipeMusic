@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="music_window_background">#0B0D12</color>
-    <color name="music_launcher_background">#0B0D12</color>
 
     <style name="MusicAppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:windowBackground">@color/music_window_background</item>

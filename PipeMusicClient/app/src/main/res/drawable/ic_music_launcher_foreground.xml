@@ -1,16 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:fillColor="#7C5CFF"
-        android:pathData="M54,54m-31,0a31,31 0,1 1,62 0a31,31 0,1 1,-62 0" />
-    <path
-        android:fillColor="#4DA3FF"
-        android:fillAlpha="0.55"
-        android:pathData="M54,54m-22,0a22,22 0,1 1,44 0a22,22 0,1 1,-44 0" />
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M62.5,33v25.4c-2.1,-1.2 -4.6,-1.9 -7.2,-1.9c-7.2,0 -13,4.9 -13,11s5.8,11 13,11s13,-4.9 13,-11V45.6h10V33z" />
+    <!-- Swirl grooves borrowed from the PipePipe disc -->
+    <path android:strokeColor="#10020A" android:strokeAlpha="0.6" android:strokeWidth="2.6"
+        android:pathData="M21.16,45.2 A34,34 0 0,1 80.05,32.15" />
+    <path android:strokeColor="#10020A" android:strokeAlpha="0.5" android:strokeWidth="2.0"
+        android:pathData="M83.46,61.89 A30.5,30.5 0 0,1 24.54,61.89" />
+    <path android:strokeColor="#10020A" android:strokeAlpha="0.4" android:strokeWidth="1.4"
+        android:pathData="M48.36,86.01 A32.5,32.5 0 0,1 22.61,62.41" />
+    <path android:strokeColor="#10020A" android:strokeAlpha="0.4" android:strokeWidth="1.4"
+        android:pathData="M41.96,28.17 A28.5,28.5 0 0,1 78.68,39.75" />
+    <path android:strokeColor="#10020A" android:strokeAlpha="0.45" android:strokeWidth="1.6"
+        android:pathData="M86.17,39 A35.5,35.5 0 0,1 84.74,71.75" />
+    <path android:fillColor="#1E000F" android:fillAlpha="0.3"
+        android:pathData="M43.5,34.8h3v3h-3zM61.5,34.8h3v3h-3zM46.5,37.8h3v3h-3zM58.5,37.8h3v3h-3zM49.5,40.8h3v3h-3zM55.5,40.8h3v3h-3zM52.5,43.8h3v3h-3zM37.5,46.8h33v3h-33zM34.5,49.8h3v3h-3zM70.5,49.8h3v3h-3zM34.5,52.8h3v3h-3zM52.5,52.8h3v3h-3zM70.5,52.8h3v3h-3zM34.5,55.8h3v3h-3zM46.5,55.8h3v3h-3zM52.5,55.8h3v3h-3zM70.5,55.8h3v3h-3zM34.5,58.8h3v3h-3zM46.5,58.8h3v3h-3zM52.5,58.8h3v3h-3zM58.5,58.8h3v3h-3zM70.5,58.8h3v3h-3zM34.5,61.8h3v3h-3zM40.5,61.8h3v3h-3zM46.5,61.8h3v3h-3zM52.5,61.8h3v3h-3zM58.5,61.8h3v3h-3zM64.5,61.8h3v3h-3zM70.5,61.8h3v3h-3zM34.5,64.8h3v3h-3zM40.5,64.8h3v3h-3zM46.5,64.8h3v3h-3zM52.5,64.8h3v3h-3zM58.5,64.8h3v3h-3zM64.5,64.8h3v3h-3zM70.5,64.8h3v3h-3zM34.5,67.8h3v3h-3zM70.5,67.8h3v3h-3zM37.5,70.8h33v3h-33zM40.5,73.8h3v3h-3zM64.5,73.8h3v3h-3z" />
+    <!-- PipePipe's pixel TV, now playing an equalizer -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M43.5,33.6h3v3h-3zM61.5,33.6h3v3h-3zM46.5,36.6h3v3h-3zM58.5,36.6h3v3h-3zM49.5,39.6h3v3h-3zM55.5,39.6h3v3h-3zM52.5,42.6h3v3h-3zM37.5,45.6h33v3h-33zM34.5,48.6h3v3h-3zM70.5,48.6h3v3h-3zM34.5,51.6h3v3h-3zM52.5,51.6h3v3h-3zM70.5,51.6h3v3h-3zM34.5,54.6h3v3h-3zM46.5,54.6h3v3h-3zM52.5,54.6h3v3h-3zM70.5,54.6h3v3h-3zM34.5,57.6h3v3h-3zM46.5,57.6h3v3h-3zM52.5,57.6h3v3h-3zM58.5,57.6h3v3h-3zM70.5,57.6h3v3h-3zM34.5,60.6h3v3h-3zM40.5,60.6h3v3h-3zM46.5,60.6h3v3h-3zM52.5,60.6h3v3h-3zM58.5,60.6h3v3h-3zM64.5,60.6h3v3h-3zM70.5,60.6h3v3h-3zM34.5,63.6h3v3h-3zM40.5,63.6h3v3h-3zM46.5,63.6h3v3h-3zM52.5,63.6h3v3h-3zM58.5,63.6h3v3h-3zM64.5,63.6h3v3h-3zM70.5,63.6h3v3h-3zM34.5,66.6h3v3h-3zM70.5,66.6h3v3h-3zM37.5,69.6h33v3h-33zM40.5,72.6h3v3h-3zM64.5,72.6h3v3h-3z" />
 </vector>
