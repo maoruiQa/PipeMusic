@@ -677,6 +677,7 @@ fun MusicApp(
 
     if (showSleepSheet) {
         SleepTimerSheet(
+            endsAt = player.sleepTimerEndsAt,
             onDismiss = { showSleepSheet = false },
             onSelect = { minutes ->
                 MusicPlayerController.setSleepTimer(context, minutes)

@@ -1,5 +1,6 @@
 package org.schabi.newpipe.music.ui.components
 
+import android.text.format.DateFormat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +17,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowDownward
@@ -51,12 +54,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.schabi.newpipe.R
 import org.schabi.newpipe.music.data.db.PlaylistWithCount
 import org.schabi.newpipe.music.data.db.TrackEntity
 import org.schabi.newpipe.music.playback.PlayerUiState
+import org.schabi.newpipe.music.playback.SleepTimer
+import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -338,10 +346,15 @@ fun QueueSheet(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SleepTimerSheet(
+    endsAt: Long,
     onDismiss: () -> Unit,
     onSelect: (Int) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var customHours by remember { mutableStateOf("") }
+    var customMinutes by remember { mutableStateOf("") }
+    var customInvalid by remember { mutableStateOf(false) }
+    val context = LocalContext.current
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -354,12 +367,23 @@ fun SleepTimerSheet(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = stringResource(R.string.pm_sleep_sheet_desc),
+                text = if (endsAt > 0) {
+                    stringResource(
+                        R.string.pm_sleep_ends_at,
+                        DateFormat.getTimeFormat(context).format(Date(endsAt))
+                    )
+                } else {
+                    stringResource(R.string.pm_sleep_sheet_desc)
+                },
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = if (endsAt > 0) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                }
             )
             Spacer(Modifier.height(12.dp))
-            listOf(15, 30, 45, 60, 90).forEach { minutes ->
+            SleepTimer.PRESETS.forEach { minutes ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -383,6 +407,71 @@ fun SleepTimerSheet(
                     )
                 }
             }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.pm_sleep_custom),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(Modifier.height(8.dp))
+            val startCustom = {
+                val total = SleepTimer.customMinutes(customHours, customMinutes)
+                if (total == null) {
+                    customInvalid = true
+                } else {
+                    onSelect(total)
+                    onDismiss()
+                }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                OutlinedTextField(
+                    value = customHours,
+                    onValueChange = { value ->
+                        customHours = value.filter { it.isDigit() }.take(2)
+                        customInvalid = false
+                    },
+                    modifier = Modifier.weight(1f),
+                    label = { Text(stringResource(R.string.pm_sleep_hours)) },
+                    singleLine = true,
+                    isError = customInvalid,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Next
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                )
+                Spacer(Modifier.width(10.dp))
+                OutlinedTextField(
+                    value = customMinutes,
+                    onValueChange = { value ->
+                        customMinutes = value.filter { it.isDigit() }.take(4)
+                        customInvalid = false
+                    },
+                    modifier = Modifier.weight(1f),
+                    label = { Text(stringResource(R.string.pm_sleep_minutes)) },
+                    singleLine = true,
+                    isError = customInvalid,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(onDone = { startCustom() }),
+                    shape = RoundedCornerShape(16.dp)
+                )
+                Spacer(Modifier.width(10.dp))
+                Button(onClick = startCustom) {
+                    Text(stringResource(R.string.pm_sleep_start))
+                }
+            }
+            if (customInvalid) {
+                Text(
+                    text = stringResource(R.string.pm_sleep_custom_invalid),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+            Spacer(Modifier.height(8.dp))
             TextButton(onClick = {
                 onSelect(0)
                 onDismiss()

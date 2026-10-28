@@ -337,4 +337,10 @@
     <string name="pm_duration_minutes">%1$d мин</string>
     <string name="pm_duration_hours">%1$d ч</string>
     <string name="pm_duration_hours_minutes">%1$d ч %2$d мин</string>
+    <string name="pm_sleep_custom">Своё время</string>
+    <string name="pm_sleep_hours">Часы</string>
+    <string name="pm_sleep_minutes">Минуты</string>
+    <string name="pm_sleep_start">Запустить</string>
+    <string name="pm_sleep_custom_invalid">Введите время от 1 минуты до 24 часов</string>
+    <string name="pm_sleep_ends_at">Пауза в %1$s</string>
 </resources>

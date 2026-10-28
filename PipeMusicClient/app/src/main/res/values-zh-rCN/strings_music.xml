@@ -337,4 +337,10 @@
     <string name="pm_duration_minutes">%1$d 分钟</string>
     <string name="pm_duration_hours">%1$d 小时</string>
     <string name="pm_duration_hours_minutes">%1$d 小时 %2$d 分钟</string>
+    <string name="pm_sleep_custom">自定义时长</string>
+    <string name="pm_sleep_hours">小时</string>
+    <string name="pm_sleep_minutes">分钟</string>
+    <string name="pm_sleep_start">开始</string>
+    <string name="pm_sleep_custom_invalid">请输入 1 分钟到 24 小时之间的时长</string>
+    <string name="pm_sleep_ends_at">将在 %1$s 暂停</string>
 </resources>

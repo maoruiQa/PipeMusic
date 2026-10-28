@@ -337,4 +337,10 @@
     <string name="pm_duration_minutes">%1$d min</string>
     <string name="pm_duration_hours">%1$d h</string>
     <string name="pm_duration_hours_minutes">%1$d h %2$d min</string>
+    <string name="pm_sleep_custom">Duración personalizada</string>
+    <string name="pm_sleep_hours">Horas</string>
+    <string name="pm_sleep_minutes">Minutos</string>
+    <string name="pm_sleep_start">Iniciar</string>
+    <string name="pm_sleep_custom_invalid">Introduce una duración entre 1 minuto y 24 horas</string>
+    <string name="pm_sleep_ends_at">Se pausará a las %1$s</string>
 </resources>

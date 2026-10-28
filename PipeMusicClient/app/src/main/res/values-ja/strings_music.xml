@@ -337,4 +337,10 @@
     <string name="pm_duration_minutes">%1$d 分</string>
     <string name="pm_duration_hours">%1$d 時間</string>
     <string name="pm_duration_hours_minutes">%1$d 時間 %2$d 分</string>
+    <string name="pm_sleep_custom">カスタム時間</string>
+    <string name="pm_sleep_hours">時間</string>
+    <string name="pm_sleep_minutes">分</string>
+    <string name="pm_sleep_start">開始</string>
+    <string name="pm_sleep_custom_invalid">1 分から 24 時間の範囲で入力してください</string>
+    <string name="pm_sleep_ends_at">%1$s に一時停止</string>
 </resources>
