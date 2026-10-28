@@ -13,8 +13,11 @@ import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -90,14 +93,15 @@ fun Artwork(
     showPlaceholderIcon: Boolean = true
 ) {
     val sizePx = with(androidx.compose.ui.platform.LocalDensity.current) { size.roundToPx() }
-    // Keys are required: without them the producer never relaunches when the source changes
-    // (e.g. the next track of a playlist), leaving the previous artwork on screen.
-    val bitmap by produceState<Bitmap?>(
-        initialValue = ArtworkCache.cached("$source@$sizePx"),
-        source,
-        sizePx
-    ) {
-        value = ArtworkCache.load(source, sizePx)
+    val key = "$source@$sizePx"
+    // The holder itself must be keyed: produceState only relaunches its producer and keeps the
+    // previous value, so after the queue advanced in the background the mini player kept showing
+    // the old cover until (or unless) the new one finished loading.
+    var bitmap by remember(key) { mutableStateOf(ArtworkCache.cached(key)) }
+    LaunchedEffect(key) {
+        if (bitmap == null) {
+            bitmap = ArtworkCache.load(source, sizePx)
+        }
     }
     val colors = listOf(
         MaterialTheme.colorScheme.primary.copy(alpha = 0.55f),

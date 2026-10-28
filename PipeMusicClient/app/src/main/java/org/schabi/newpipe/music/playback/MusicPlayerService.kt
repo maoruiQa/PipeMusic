@@ -443,6 +443,10 @@ class MusicPlayerService : Service(), Player.Listener {
         updatePlaybackState()
     }
 
+    /**
+     * Always includes the loaded artwork: rebuilding the metadata without it (e.g. once the stream
+     * resolved) left system media controls without a cover or with the previous track's one.
+     */
     private fun updateMetadata(track: TrackEntity) {
         session.setMetadata(
             MediaMetadataCompat.Builder()
@@ -450,6 +454,7 @@ class MusicPlayerService : Service(), Player.Listener {
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, track.artist)
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, track.album)
                 .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, track.durationMs)
+                .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, artwork)
                 .build()
         )
     }
@@ -662,15 +667,7 @@ class MusicPlayerService : Service(), Player.Listener {
                 return@launch
             }
             artwork = bitmap
-            session.setMetadata(
-                MediaMetadataCompat.Builder()
-                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, track.title)
-                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, track.artist)
-                    .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, track.album)
-                    .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, track.durationMs)
-                    .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, bitmap)
-                    .build()
-            )
+            updateMetadata(track)
             updateNotification()
         }
     }
