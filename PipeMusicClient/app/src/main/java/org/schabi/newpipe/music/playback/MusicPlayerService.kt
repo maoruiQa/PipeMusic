@@ -223,7 +223,11 @@ class MusicPlayerService : Service(), Player.Listener {
             return
         }
 
+        // Drop the previous track right away: otherwise it keeps playing under the new title and
+        // cover until the stream resolves. Clearing the items also resets the reported duration.
         resolving = true
+        player.stop()
+        player.clearMediaItems()
         publish()
         loadJob = scope.launch {
             val result = withContext(Dispatchers.IO) {
@@ -272,7 +276,8 @@ class MusicPlayerService : Service(), Player.Listener {
     }
 
     private fun resume() {
-        if (queue.current == null) {
+        // While resolving the player is idle on purpose; restarting would throw the load away.
+        if (queue.current == null || resolving) {
             return
         }
         when (player.playbackState) {
