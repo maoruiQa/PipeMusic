@@ -355,4 +355,11 @@
     <string name="pm_update_later">Later</string>
     <string name="pm_update_up_to_date">You are on the latest version</string>
     <string name="pm_update_check_failed">Could not check for updates. Check your connection and try again.</string>
+    <string name="pm_action_all_parts">All parts</string>
+    <string name="pm_parts_count">%1$d parts</string>
+    <string name="pm_parts_single">This video has only one part.</string>
+    <string name="pm_action_download_all">Download all</string>
+    <string name="pm_feedback_parts_download_queued">%1$d parts added to the download list</string>
+    <string name="pm_feedback_parts_download_none">All parts are already downloaded or downloading</string>
+    <string name="pm_error_parts_failed">Could not load the parts of this video.</string>
 </resources>

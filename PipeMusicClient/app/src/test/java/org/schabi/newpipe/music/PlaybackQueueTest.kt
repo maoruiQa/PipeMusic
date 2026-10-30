@@ -1,6 +1,7 @@
 package org.schabi.newpipe.music
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -115,5 +116,38 @@ class PlaybackQueueTest {
         assertEquals(3, queue.size)
         assertEquals(1L, queue.current?.id)
         assertEquals(1L, queue.tracks.last().id)
+    }
+
+    @Test
+    fun `expanding the current song inserts its parts in place`() {
+        val queue = queue()
+        queue.jumpTo(1)
+
+        assertTrue(queue.expandCurrent(2, listOf(track(10), track(2), track(11))))
+
+        assertEquals(listOf(1L, 10L, 2L, 11L, 3L), queue.tracks.map { it.id })
+        assertEquals(2L, queue.current?.id)
+        assertEquals(11L, queue.next()?.id)
+    }
+
+    @Test
+    fun `expanding moves parts that were already queued instead of duplicating them`() {
+        val queue = queue()
+
+        assertTrue(queue.expandCurrent(1, listOf(track(1), track(3))))
+
+        assertEquals(listOf(1L, 3L, 2L), queue.tracks.map { it.id })
+        assertEquals(1L, queue.current?.id)
+    }
+
+    @Test
+    fun `expanding is ignored once another song is playing`() {
+        val queue = queue()
+        queue.jumpTo(2)
+
+        assertFalse(queue.expandCurrent(1, listOf(track(1), track(10))))
+        assertFalse(queue.expandCurrent(3, listOf(track(3))))
+        assertFalse(queue.expandCurrent(3, listOf(track(10), track(11))))
+        assertEquals(listOf(1L, 2L, 3L), queue.tracks.map { it.id })
     }
 }

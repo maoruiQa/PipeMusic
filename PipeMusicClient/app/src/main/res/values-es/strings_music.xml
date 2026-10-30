@@ -355,4 +355,11 @@
     <string name="pm_update_later">Más tarde</string>
     <string name="pm_update_up_to_date">Tienes la versión más reciente</string>
     <string name="pm_update_check_failed">No se pudo buscar actualizaciones. Comprueba la conexión e inténtalo de nuevo.</string>
+    <string name="pm_action_all_parts">Todas las partes</string>
+    <string name="pm_parts_count">%1$d partes</string>
+    <string name="pm_parts_single">Este vídeo solo tiene una parte.</string>
+    <string name="pm_action_download_all">Descargar todo</string>
+    <string name="pm_feedback_parts_download_queued">%1$d partes añadidas a la lista de descargas</string>
+    <string name="pm_feedback_parts_download_none">Todas las partes ya están descargadas o descargándose</string>
+    <string name="pm_error_parts_failed">No se pudieron cargar las partes de este vídeo.</string>
 </resources>

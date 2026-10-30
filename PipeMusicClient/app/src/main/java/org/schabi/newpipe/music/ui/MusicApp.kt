@@ -58,6 +58,7 @@ import org.schabi.newpipe.music.ui.components.DownloadsSheet
 import org.schabi.newpipe.music.ui.components.FullPlayer
 import org.schabi.newpipe.music.ui.components.MiniPlayer
 import org.schabi.newpipe.music.ui.components.MusicBottomBar
+import org.schabi.newpipe.music.ui.components.PartsSheet
 import org.schabi.newpipe.music.ui.components.QueueSheet
 import org.schabi.newpipe.music.ui.components.SleepTimerSheet
 import org.schabi.newpipe.music.ui.components.UpdateDialog
@@ -106,6 +107,7 @@ fun MusicApp(
     val recentSearches by viewModel.recentSearches.collectAsStateWithLifecycle()
     val importState by viewModel.importState.collectAsStateWithLifecycle()
     val searchState by viewModel.search.collectAsStateWithLifecycle()
+    val partsState by viewModel.parts.collectAsStateWithLifecycle()
 
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var detailPlaylistId by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -364,7 +366,11 @@ fun MusicApp(
                                 onLoadMore = viewModel::loadMore,
                                 onDeleteHistory = viewModel::deleteSearchHistory,
                                 activeDownloads = activeDownloads,
-                                onOpenDownloads = { showDownloadsSheet = true }
+                                onOpenDownloads = { showDownloadsSheet = true },
+                                supportsParts = viewModel::supportsParts,
+                                onShowParts = { song ->
+                                    viewModel.openParts(song.serviceId, song.url, song.title)
+                                }
                             )
                         }
 
@@ -673,7 +679,50 @@ fun MusicApp(
             onMoveDown = {
                 actionPlaylistId?.let { viewModel.movePlaylistTrack(it, track.id, 1) }
             },
-            onDelete = { viewModel.deleteTracks(listOf(track)) }
+            onDelete = { viewModel.deleteTracks(listOf(track)) },
+            onShowParts = track.remoteUrl
+                ?.takeIf { viewModel.supportsParts(track.serviceId) }
+                ?.let { url -> { viewModel.openParts(track.serviceId, url, track.title) } }
+        )
+    }
+
+    partsState?.let { parts ->
+        PartsSheet(
+            state = parts,
+            onDismiss = viewModel::closeParts,
+            onPlay = { index ->
+                viewModel.playParts(context, index)
+                viewModel.closeParts()
+            },
+            onDownloadAll = {
+                viewModel.downloadParts(context) { queued ->
+                    scope.launch {
+                        val result = snackbarHostState.showSnackbar(
+                            message = if (queued > 0) {
+                                context.getString(
+                                    R.string.pm_feedback_parts_download_queued,
+                                    queued
+                                )
+                            } else {
+                                context.getString(R.string.pm_feedback_parts_download_none)
+                            },
+                            actionLabel = context.getString(R.string.pm_action_view_downloads),
+                            withDismissAction = true,
+                            duration = SnackbarDuration.Short
+                        )
+                        if (result == SnackbarResult.ActionPerformed) {
+                            showDownloadsSheet = true
+                        }
+                    }
+                }
+                viewModel.closeParts()
+            },
+            onAddAllToPlaylist = {
+                viewModel.ensurePartTracks { partTracks ->
+                    addToPlaylistIds = partTracks.map { it.id }
+                }
+                viewModel.closeParts()
+            }
         )
     }
 

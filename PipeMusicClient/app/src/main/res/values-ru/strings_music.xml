@@ -355,4 +355,11 @@
     <string name="pm_update_later">Позже</string>
     <string name="pm_update_up_to_date">У вас последняя версия</string>
     <string name="pm_update_check_failed">Не удалось проверить обновления. Проверьте подключение и повторите попытку.</string>
+    <string name="pm_action_all_parts">Все части</string>
+    <string name="pm_parts_count">Частей: %1$d</string>
+    <string name="pm_parts_single">У этого видео только одна часть.</string>
+    <string name="pm_action_download_all">Скачать все</string>
+    <string name="pm_feedback_parts_download_queued">Частей добавлено в загрузки: %1$d</string>
+    <string name="pm_feedback_parts_download_none">Все части уже скачаны или скачиваются</string>
+    <string name="pm_error_parts_failed">Не удалось загрузить части этого видео.</string>
 </resources>

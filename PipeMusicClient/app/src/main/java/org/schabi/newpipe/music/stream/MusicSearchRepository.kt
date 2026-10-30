@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.Page
+import org.schabi.newpipe.extractor.ServiceList
 import org.schabi.newpipe.extractor.stream.StreamInfoItem
 import org.schabi.newpipe.util.ExtractorHelper
 
@@ -101,6 +102,22 @@ class MusicSearchRepository(context: Context) {
             emptyList()
         }
     }
+
+    /** Only BiliBili splits one upload into several parts. */
+    fun supportsParts(serviceId: Int): Boolean = serviceId == ServiceList.BiliBili.serviceId
+
+    /**
+     * Every part of the multi-part video at [url], in upload order. Empty when the video has a
+     * single part or the service has no parts at all.
+     */
+    suspend fun loadParts(serviceId: Int, url: String): List<StreamInfoItem> =
+        withContext(Dispatchers.IO) {
+            if (!supportsParts(serviceId)) {
+                return@withContext emptyList()
+            }
+            val info = ExtractorHelper.getStreamInfo(serviceId, url, false).blockingGet()
+            info.partitions.orEmpty().takeIf { it.size > 1 } ?: emptyList()
+        }
 
     suspend fun serviceIdForUrl(url: String): Int? = withContext(Dispatchers.IO) {
         runCatching { NewPipe.getServiceByUrl(url.trim()).serviceId }.getOrNull()

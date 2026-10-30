@@ -171,6 +171,31 @@ class PlaybackQueue(initial: List<TrackEntity> = emptyList(), startIndex: Int = 
         rebuildOrder()
     }
 
+    /**
+     * Replaces the current song with every part of the multi-part video it belongs to, keeping
+     * the current song playing. Parts already queued elsewhere are moved instead of duplicated.
+     * Does nothing when the current song has changed since [anchorId] was looked up.
+     */
+    fun expandCurrent(anchorId: Long, parts: List<TrackEntity>): Boolean {
+        val anchor = current ?: return false
+        if (anchor.id != anchorId || parts.size < 2 || parts.none { it.id == anchorId }) {
+            return false
+        }
+        val partIds = parts.mapTo(HashSet()) { it.id }
+        val expanded = ArrayList<TrackEntity>(items.size + parts.size)
+        items.forEachIndexed { index, track ->
+            when {
+                index == currentIndex -> expanded.addAll(parts)
+                track.id !in partIds -> expanded.add(track)
+            }
+        }
+        items.clear()
+        items.addAll(expanded)
+        currentIndex = items.indexOfFirst { it.id == anchorId }
+        rebuildOrder()
+        return true
+    }
+
     fun peekNext(): TrackEntity? {
         if (items.isEmpty()) {
             return null

@@ -355,4 +355,11 @@
     <string name="pm_update_later">Später</string>
     <string name="pm_update_up_to_date">Du verwendest die neueste Version</string>
     <string name="pm_update_check_failed">Updates konnten nicht geprüft werden. Prüfe deine Verbindung und versuche es erneut.</string>
+    <string name="pm_action_all_parts">Alle Teile</string>
+    <string name="pm_parts_count">%1$d Teile</string>
+    <string name="pm_parts_single">Dieses Video hat nur einen Teil.</string>
+    <string name="pm_action_download_all">Alle herunterladen</string>
+    <string name="pm_feedback_parts_download_queued">%1$d Teile zur Downloadliste hinzugefügt</string>
+    <string name="pm_feedback_parts_download_none">Alle Teile sind bereits heruntergeladen oder werden heruntergeladen</string>
+    <string name="pm_error_parts_failed">Die Teile dieses Videos konnten nicht geladen werden.</string>
 </resources>

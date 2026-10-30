@@ -355,4 +355,11 @@
     <string name="pm_update_later">後で</string>
     <string name="pm_update_up_to_date">最新バージョンです</string>
     <string name="pm_update_check_failed">アップデートを確認できませんでした。接続を確認して再試行してください。</string>
+    <string name="pm_action_all_parts">すべてのパート</string>
+    <string name="pm_parts_count">%1$d パート</string>
+    <string name="pm_parts_single">この動画のパートは 1 つだけです。</string>
+    <string name="pm_action_download_all">すべてダウンロード</string>
+    <string name="pm_feedback_parts_download_queued">%1$d 個のパートをダウンロードリストに追加しました</string>
+    <string name="pm_feedback_parts_download_none">すべてのパートはダウンロード済みまたはダウンロード中です</string>
+    <string name="pm_error_parts_failed">この動画のパートを読み込めませんでした。</string>
 </resources>

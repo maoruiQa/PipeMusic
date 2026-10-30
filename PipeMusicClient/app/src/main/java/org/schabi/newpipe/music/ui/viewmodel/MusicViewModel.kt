@@ -40,6 +40,7 @@ import org.schabi.newpipe.music.local.LocalImportWorker
 import org.schabi.newpipe.music.playback.MusicPlayerController
 import org.schabi.newpipe.music.stream.AudioDownloadWorker
 import org.schabi.newpipe.music.stream.MusicService
+import org.schabi.newpipe.music.stream.StreamParts
 import org.schabi.newpipe.music.update.AppVersion
 import org.schabi.newpipe.music.update.ReleaseInfo
 import org.schabi.newpipe.music.update.UpdateChecker
@@ -67,6 +68,16 @@ data class SearchUiState(
     val searchSubmitted: Boolean = false
 )
 
+/** Bottom sheet listing every part of a multi-part video. */
+data class PartsUiState(
+    val serviceId: Int,
+    val url: String,
+    val title: String,
+    val parts: List<SearchSong> = emptyList(),
+    val loading: Boolean = true,
+    val error: String? = null
+)
+
 enum class UpdateCheckResult {
     AVAILABLE,
     UP_TO_DATE,
@@ -90,6 +101,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         org.schabi.newpipe.music.data.MusicLocale.localized(application)
     private val repository = MusicGraph.repository
     private var searchJob: Job? = null
+    private var partsJob: Job? = null
     private var linkRequestId = 0
 
     val tracks: StateFlow<List<TrackEntity>> = repository.allTracks
@@ -124,6 +136,9 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         )
     )
     val search: StateFlow<SearchUiState> = _search.asStateFlow()
+
+    private val _parts = MutableStateFlow<PartsUiState?>(null)
+    val parts: StateFlow<PartsUiState?> = _parts.asStateFlow()
 
     fun onQueryChange(query: String) {
         // Typing alone must not be treated as a submitted search, otherwise the result list
@@ -311,6 +326,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
                     )
                 }
                 MusicPlayerController.playSingle(context, track)
+                queueOtherParts(context, track, info.partitions.orEmpty())
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
@@ -334,6 +350,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
                 thumbnailUrl = song.thumbnailUrl
             )
             MusicPlayerController.playSingle(context, track)
+            queueOtherParts(context, track)
         }
     }
 
@@ -354,6 +371,135 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
             startDownload(context, track, onFeedback)
         }
     }
+
+    fun supportsParts(serviceId: Int): Boolean = MusicGraph.search.supportsParts(serviceId)
+
+    fun openParts(serviceId: Int, url: String, title: String) {
+        partsJob?.cancel()
+        _parts.value = PartsUiState(serviceId = serviceId, url = url, title = title)
+        partsJob = scope.launch {
+            try {
+                val songs = MusicGraph.search.loadParts(serviceId, url).toPartSongs(serviceId)
+                _parts.update { it?.copy(loading = false, parts = songs) }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                Log.w(
+                    "MusicSearch",
+                    "Loading parts failed for $serviceId: ${error.javaClass.simpleName}"
+                )
+                _parts.update {
+                    it?.copy(
+                        loading = false,
+                        error = appContext.getString(R.string.pm_error_parts_failed)
+                    )
+                }
+            }
+        }
+    }
+
+    fun closeParts() {
+        partsJob?.cancel()
+        _parts.value = null
+    }
+
+    fun playParts(context: Context, startIndex: Int) {
+        val songs = _parts.value?.parts.orEmpty()
+        if (songs.isEmpty()) {
+            return
+        }
+        scope.launch {
+            MusicPlayerController.playQueue(context, ensurePartTracks(songs), startIndex)
+        }
+    }
+
+    /** Queues every part that is neither downloaded nor already in the download list. */
+    fun downloadParts(context: Context, onQueued: (Int) -> Unit) {
+        val songs = _parts.value?.parts.orEmpty()
+        if (songs.isEmpty()) {
+            return
+        }
+        scope.launch {
+            val pending = ensurePartTracks(songs).filter { track ->
+                track.remoteUrl != null &&
+                    repository.localFile(track) == null &&
+                    track.downloadState != DOWNLOADING &&
+                    track.downloadState != DOWNLOAD_QUEUED
+            }
+            pending.forEach { track ->
+                repository.setDownloadState(track.id, DOWNLOAD_QUEUED, 0, null)
+                AudioDownloadWorker.enqueue(context, track.id)
+            }
+            onQueued(pending.size)
+        }
+    }
+
+    fun ensurePartTracks(onReady: (List<TrackEntity>) -> Unit) {
+        val songs = _parts.value?.parts.orEmpty()
+        if (songs.isEmpty()) {
+            return
+        }
+        scope.launch { onReady(ensurePartTracks(songs)) }
+    }
+
+    private suspend fun ensurePartTracks(songs: List<SearchSong>): List<TrackEntity> =
+        songs.map { song -> ensurePartTrack(song) }
+
+    private suspend fun ensurePartTrack(song: SearchSong): TrackEntity =
+        repository.ensureStreamTrack(
+            serviceId = song.serviceId,
+            url = song.url,
+            title = song.title,
+            artist = song.artist,
+            durationMs = song.durationMs,
+            thumbnailUrl = song.thumbnailUrl
+        )
+
+    /**
+     * Playing one part of a multi-part video keeps going with the next parts: once they are
+     * known they are queued around [track] without interrupting it. [known] skips the lookup
+     * when the caller already extracted the parts.
+     */
+    private fun queueOtherParts(
+        context: Context,
+        track: TrackEntity,
+        known: List<StreamInfoItem>? = null
+    ) {
+        val url = track.remoteUrl ?: return
+        if (!supportsParts(track.serviceId)) {
+            return
+        }
+        scope.launch {
+            val items = try {
+                known?.takeIf { it.size > 1 }
+                    ?: MusicGraph.search.loadParts(track.serviceId, url)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                Log.w(
+                    "MusicSearch",
+                    "Loading parts failed for track ${track.id}: ${error.javaClass.simpleName}"
+                )
+                return@launch
+            }
+            val songs = items.toPartSongs(track.serviceId)
+            val anchor = StreamParts.indexOf(songs.map { it.url }, url)
+            if (songs.size < 2 || anchor < 0) {
+                return@launch
+            }
+            // The playing song keeps its own row, even when it was opened from another URL form.
+            val parts = songs.mapIndexed { index, song ->
+                if (index == anchor) track else ensurePartTrack(song)
+            }
+            MusicPlayerController.expandCurrent(context, track, parts)
+        }
+    }
+
+    private fun List<StreamInfoItem>.toPartSongs(serviceId: Int): List<SearchSong> =
+        mapIndexed { index, item ->
+            val number = StreamParts.partNumber(item.url) ?: (index + 1)
+            item.toSearchSong(serviceId).copy(title = StreamParts.title(item.name, number))
+        }
 
     fun playTracks(context: Context, tracks: List<TrackEntity>, startIndex: Int = 0) {
         MusicPlayerController.playQueue(context, tracks, startIndex)
@@ -631,6 +777,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
 
     override fun onCleared() {
         searchJob?.cancel()
+        partsJob?.cancel()
         scope.cancel()
         super.onCleared()
     }

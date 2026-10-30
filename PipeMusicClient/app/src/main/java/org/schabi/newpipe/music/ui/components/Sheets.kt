@@ -4,11 +4,13 @@ import android.text.format.DateFormat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -32,13 +34,16 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.PlaylistAdd
 import androidx.compose.material.icons.rounded.RemoveCircleOutline
 import androidx.compose.material.icons.rounded.Timer
+import androidx.compose.material.icons.rounded.ViewList
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -64,6 +69,8 @@ import org.schabi.newpipe.music.data.db.PlaylistWithCount
 import org.schabi.newpipe.music.data.db.TrackEntity
 import org.schabi.newpipe.music.playback.PlayerUiState
 import org.schabi.newpipe.music.playback.SleepTimer
+import org.schabi.newpipe.music.ui.formatDuration
+import org.schabi.newpipe.music.ui.viewmodel.PartsUiState
 import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -180,7 +187,8 @@ fun TrackActionsSheet(
     onRemoveFromPlaylist: () -> Unit,
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onShowParts: (() -> Unit)? = null
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(
@@ -236,6 +244,14 @@ fun TrackActionsSheet(
                 onToggleFavorite,
                 onDismiss
             )
+            if (onShowParts != null) {
+                ActionRow(
+                    Icons.Rounded.ViewList,
+                    stringResource(R.string.pm_action_all_parts),
+                    onShowParts,
+                    onDismiss
+                )
+            }
             if (track.remoteUrl != null &&
                 track.downloadState != org.schabi.newpipe.music.data.db.DOWNLOAD_COMPLETED
             ) {
@@ -282,6 +298,145 @@ fun TrackActionsSheet(
                     onDismiss,
                     tint = MaterialTheme.colorScheme.error
                 )
+            }
+        }
+    }
+}
+
+/** Every part of a multi-part video, with batch play, download and add-to-playlist. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PartsSheet(
+    state: PartsUiState,
+    onDismiss: () -> Unit,
+    onPlay: (Int) -> Unit,
+    onDownloadAll: () -> Unit,
+    onAddAllToPlaylist: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val colors = MaterialTheme.colorScheme
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = colors.surfaceContainerLow
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 24.dp)) {
+            Row(
+                modifier = Modifier.padding(horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = state.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = colors.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                if (state.parts.isNotEmpty()) {
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        text = stringResource(R.string.pm_parts_count, state.parts.size),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = colors.onSurfaceVariant
+                    )
+                }
+            }
+            Spacer(Modifier.height(12.dp))
+            when {
+                state.loading -> Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(28.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                }
+
+                state.error != null || state.parts.isEmpty() -> Text(
+                    text = state.error ?: stringResource(R.string.pm_parts_single),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (state.error != null) colors.error else colors.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp)
+                )
+
+                else -> {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Button(onClick = { onPlay(0) }, modifier = Modifier.weight(1f)) {
+                            Icon(
+                                Icons.Rounded.PlayArrow,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                text = stringResource(R.string.pm_action_play_all),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        OutlinedButton(onClick = onDownloadAll, modifier = Modifier.weight(1f)) {
+                            Icon(
+                                Icons.Rounded.Download,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                text = stringResource(R.string.pm_action_download_all),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        IconButton(onClick = onAddAllToPlaylist) {
+                            Icon(
+                                Icons.Rounded.PlaylistAdd,
+                                contentDescription = stringResource(
+                                    R.string.pm_action_add_to_playlist
+                                ),
+                                tint = colors.primary
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    LazyColumn(modifier = Modifier.heightIn(max = 420.dp)) {
+                        itemsIndexed(state.parts) { index, part ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(14.dp))
+                                    .clickable { onPlay(index) }
+                                    .padding(horizontal = 8.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "P${index + 1}",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = colors.primary,
+                                    modifier = Modifier.width(44.dp)
+                                )
+                                Text(
+                                    text = part.title,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = colors.onSurface,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    text = formatDuration(part.durationMs),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = colors.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }

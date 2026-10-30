@@ -73,6 +73,20 @@ object MusicPlayerController {
         playQueue(context, listOf(track), 0, positionMs)
     }
 
+    /**
+     * Surrounds the playing song [anchor] with the other parts of its multi-part video without
+     * interrupting playback. Ignored by the service once another song has started.
+     */
+    fun expandCurrent(context: Context, anchor: TrackEntity, parts: List<TrackEntity>) {
+        if (parts.size < 2 || _state.value.current?.id != anchor.id) {
+            return
+        }
+        send(context, MusicPlayerService.ACTION_EXPAND_CURRENT) {
+            putExtra(MusicPlayerService.EXTRA_ANCHOR_ID, anchor.id)
+            putExtra(MusicPlayerService.EXTRA_IDS, parts.map { track -> track.id }.toLongArray())
+        }
+    }
+
     fun toggle(context: Context) {
         if (!_state.value.hasTrack) {
             return

@@ -149,6 +149,11 @@ class MusicPlayerService : Service(), Player.Listener {
                 publish()
             }
 
+            ACTION_EXPAND_CURRENT -> {
+                val ids = intent.getLongArrayExtra(EXTRA_IDS)?.toList().orEmpty()
+                expandCurrent(intent.getLongExtra(EXTRA_ANCHOR_ID, -1), ids)
+            }
+
             ACTION_JUMP -> jumpTo(intent.getIntExtra(EXTRA_INDEX, 0))
             ACTION_REMOVE -> removeAt(intent.getIntExtra(EXTRA_INDEX, 0))
             ACTION_SLEEP_TIMER -> setSleepTimer(intent.getIntExtra(EXTRA_MINUTES, 0))
@@ -324,6 +329,17 @@ class MusicPlayerService : Service(), Player.Listener {
     private fun jumpTo(index: Int) {
         if (queue.jumpTo(index) != null) {
             playCurrent(0)
+        }
+    }
+
+    /** Queues the other parts of a multi-part video around the song that is already playing. */
+    private fun expandCurrent(anchorId: Long, ids: List<Long>) {
+        scope.launch {
+            val parts = withContext(Dispatchers.IO) { MusicGraph.repository.getTracks(ids) }
+            if (queue.expandCurrent(anchorId, parts)) {
+                saveQueue()
+                publish()
+            }
         }
     }
 
@@ -746,6 +762,7 @@ class MusicPlayerService : Service(), Player.Listener {
         const val ACTION_SEEK = "org.schabi.newpipe.music.SEEK"
         const val ACTION_SET_REPEAT = "org.schabi.newpipe.music.SET_REPEAT"
         const val ACTION_TOGGLE_SHUFFLE = "org.schabi.newpipe.music.TOGGLE_SHUFFLE"
+        const val ACTION_EXPAND_CURRENT = "org.schabi.newpipe.music.EXPAND_CURRENT"
         const val ACTION_JUMP = "org.schabi.newpipe.music.JUMP"
         const val ACTION_REMOVE = "org.schabi.newpipe.music.REMOVE"
         const val ACTION_SLEEP_TIMER = "org.schabi.newpipe.music.SLEEP_TIMER"
@@ -753,6 +770,7 @@ class MusicPlayerService : Service(), Player.Listener {
 
         const val EXTRA_IDS = "ids"
         const val EXTRA_INDEX = "index"
+        const val EXTRA_ANCHOR_ID = "anchor_id"
         const val EXTRA_POSITION = "position"
         const val EXTRA_REPEAT = "repeat"
         const val EXTRA_MINUTES = "minutes"

@@ -35,6 +35,7 @@ import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.PlaylistAdd
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.SearchOff
+import androidx.compose.material.icons.rounded.ViewList
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -84,7 +85,9 @@ fun SearchScreen(
     onLoadMore: () -> Unit,
     onDeleteHistory: (String, Int) -> Unit,
     activeDownloads: Int = 0,
-    onOpenDownloads: () -> Unit = {}
+    onOpenDownloads: () -> Unit = {},
+    supportsParts: (Int) -> Boolean = { false },
+    onShowParts: (SearchSong) -> Unit = {}
 ) {
     val colors = MaterialTheme.colorScheme
     val focusManager = LocalFocusManager.current
@@ -246,7 +249,12 @@ fun SearchScreen(
                     song = song,
                     onPlay = { onPlay(song) },
                     onDownload = { onDownload(song) },
-                    onAddToPlaylist = { onAddToPlaylist(song) }
+                    onAddToPlaylist = { onAddToPlaylist(song) },
+                    onShowParts = if (supportsParts(song.serviceId)) {
+                        { onShowParts(song) }
+                    } else {
+                        null
+                    }
                 )
             }
             if (state.loadingMore) {
@@ -307,7 +315,8 @@ private fun SearchResultRow(
     song: SearchSong,
     onPlay: () -> Unit,
     onDownload: () -> Unit,
-    onAddToPlaylist: () -> Unit
+    onAddToPlaylist: () -> Unit,
+    onShowParts: (() -> Unit)?
 ) {
     var menu by remember { mutableStateOf(false) }
     val colors = MaterialTheme.colorScheme
@@ -393,6 +402,18 @@ private fun SearchResultRow(
                         onAddToPlaylist()
                     }
                 )
+                if (onShowParts != null) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.pm_action_all_parts)) },
+                        leadingIcon = {
+                            Icon(Icons.Rounded.ViewList, contentDescription = null)
+                        },
+                        onClick = {
+                            menu = false
+                            onShowParts()
+                        }
+                    )
+                }
             }
         }
     }
