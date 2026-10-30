@@ -152,6 +152,14 @@ class PlaybackQueue(initial: List<TrackEntity> = emptyList(), startIndex: Int = 
         rebuildOrder()
     }
 
+    /** Moves the song at [index] right after the current one, so it plays next. */
+    fun moveAfterCurrent(index: Int) {
+        if (index !in items.indices || index == currentIndex || currentIndex < 0) {
+            return
+        }
+        move(index, if (index < currentIndex) currentIndex else currentIndex + 1)
+    }
+
     fun addNext(track: TrackEntity) {
         if (items.isEmpty() || currentIndex < 0) {
             items.add(track)

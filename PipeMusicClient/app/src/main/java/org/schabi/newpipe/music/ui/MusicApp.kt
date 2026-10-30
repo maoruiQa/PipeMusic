@@ -3,6 +3,7 @@ package org.schabi.newpipe.music.ui
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -48,6 +49,7 @@ import org.schabi.newpipe.music.data.db.DOWNLOAD_COMPLETED
 import org.schabi.newpipe.music.data.db.DOWNLOAD_NONE
 import org.schabi.newpipe.music.data.db.DOWNLOAD_QUEUED
 import org.schabi.newpipe.music.data.db.DOWNLOADING
+import org.schabi.newpipe.music.data.db.TRACK_TYPE_STREAM
 import org.schabi.newpipe.music.data.db.TrackEntity
 import org.schabi.newpipe.music.playback.MusicPlayerController
 import org.schabi.newpipe.music.playback.PlaybackQueue
@@ -288,14 +290,10 @@ fun MusicApp(
                                 tracks = detailTracks,
                                 player = player,
                                 onBack = { detailPlaylistId = null },
-                                onPlayAll = {
-                                    viewModel.playPlaylist(context, detailId)
-                                },
-                                onShuffle = {
-                                    viewModel.playPlaylist(context, detailId, shuffle = true)
-                                },
-                                onPlayTrack = { index ->
-                                    viewModel.playTracks(context, detailTracks, index)
+                                onPlayAll = { shown -> viewModel.playTracks(context, shown) },
+                                onShuffle = { shown -> viewModel.shuffleTracks(context, shown) },
+                                onPlayTrack = { shown, index ->
+                                    viewModel.playTracks(context, shown, index)
                                 },
                                 onTrackMore = { track ->
                                     actionTrack = track
@@ -687,38 +685,45 @@ fun MusicApp(
     }
 
     songListState?.let { songList ->
+        val songListTracks = remember(tracks, songList.serviceId) {
+            tracks.filter { it.type == TRACK_TYPE_STREAM && it.serviceId == songList.serviceId }
+                .mapNotNull { track -> track.remoteUrl?.let { it to track } }
+                .toMap()
+        }
+        // The sheet stays open for batch work, so feedback uses toasts: a snackbar would be
+        // hidden behind it.
+        fun toast(text: String) = Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
         SongListSheet(
             state = songList,
+            tracks = songListTracks,
             onDismiss = viewModel::closeSongList,
-            onPlay = { index ->
-                viewModel.playSongList(context, index)
+            onPlay = { indices, index ->
+                viewModel.playSongList(context, indices, index)
                 viewModel.closeSongList()
             },
-            onDownloadAll = {
-                viewModel.downloadSongList(context) { queued ->
-                    scope.launch {
-                        val result = snackbarHostState.showSnackbar(
-                            message = if (queued > 0) {
-                                context.getString(
-                                    R.string.pm_feedback_list_download_queued,
-                                    queued
-                                )
-                            } else {
-                                context.getString(R.string.pm_feedback_list_download_none)
-                            },
-                            actionLabel = context.getString(R.string.pm_action_view_downloads),
-                            withDismissAction = true,
-                            duration = SnackbarDuration.Short
-                        )
-                        if (result == SnackbarResult.ActionPerformed) {
-                            showDownloadsSheet = true
+            onDownload = { indices ->
+                viewModel.downloadSongList(context, indices) { queued ->
+                    toast(
+                        if (queued > 0) {
+                            context.getString(R.string.pm_feedback_list_download_queued, queued)
+                        } else {
+                            context.getString(R.string.pm_feedback_list_download_none)
                         }
-                    }
+                    )
                 }
-                viewModel.closeSongList()
             },
-            onAddAllToPlaylist = {
-                viewModel.ensureSongListTracks { listTracks ->
+            onDeleteDownloads = { indices ->
+                viewModel.deleteSongListDownloads(context, indices) { deleted ->
+                    toast(context.getString(R.string.pm_feedback_downloads_deleted, deleted))
+                }
+            },
+            onMerge = { indices, title, deleteParts ->
+                viewModel.mergeSongList(context, indices, title, deleteParts) {
+                    toast(context.getString(R.string.pm_feedback_merge_started, indices.size))
+                }
+            },
+            onAddToPlaylist = { indices ->
+                viewModel.ensureSongListTracks(indices) { listTracks ->
                     addToPlaylistIds = listTracks.map { it.id }
                 }
                 viewModel.closeSongList()
@@ -749,7 +754,15 @@ fun MusicApp(
                 MusicPlayerController.jumpTo(context, index)
                 showQueueSheet = false
             },
-            onRemove = { index -> MusicPlayerController.removeFromQueue(context, index) }
+            onPlayNext = { index -> MusicPlayerController.playNextInQueue(context, index) },
+            onMove = { from, to -> MusicPlayerController.moveInQueue(context, from, to) },
+            onRemove = { index -> MusicPlayerController.removeFromQueue(context, index) },
+            onTrackActions = { track ->
+                // The track sheet is composed before this one, so close the queue to show it.
+                showQueueSheet = false
+                actionTrack = track
+                actionPlaylistId = null
+            }
         )
     }
 

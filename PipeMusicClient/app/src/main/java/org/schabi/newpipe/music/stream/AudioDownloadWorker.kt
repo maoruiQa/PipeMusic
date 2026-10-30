@@ -351,20 +351,7 @@ class AudioDownloadWorker(
         title.replace(Regex("[\\\\/:*?\"<>|\\n\\r]"), "_").take(60).trim()
             .ifBlank { "track" }
 
-    private fun createChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val manager = applicationContext.getSystemService(NotificationManager::class.java)
-            manager.createNotificationChannel(
-                NotificationChannel(
-                    CHANNEL_ID,
-                    string(R.string.pm_download_channel_name),
-                    NotificationManager.IMPORTANCE_LOW
-                ).apply {
-                    description = string(R.string.pm_download_channel_desc)
-                }
-            )
-        }
-    }
+    private fun createChannel() = createChannel(applicationContext)
 
     private fun foregroundInfo(track: TrackEntity, progress: Int, text: String): ForegroundInfo {
         val intent = Intent(applicationContext, MusicMainActivity::class.java)
@@ -420,7 +407,24 @@ class AudioDownloadWorker(
         const val KEY_PATH = "path"
         const val KEY_ERROR = "error"
 
-        private const val CHANNEL_ID = "music_download"
+        /** Shared with [PartsMergeWorker], which also writes into the library. */
+        const val CHANNEL_ID = "music_download"
+
+        fun createChannel(context: Context) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val localized = org.schabi.newpipe.music.data.MusicLocale.localized(context)
+                val manager = context.getSystemService(NotificationManager::class.java)
+                manager.createNotificationChannel(
+                    NotificationChannel(
+                        CHANNEL_ID,
+                        localized.getString(R.string.pm_download_channel_name),
+                        NotificationManager.IMPORTANCE_LOW
+                    ).apply {
+                        description = localized.getString(R.string.pm_download_channel_desc)
+                    }
+                )
+            }
+        }
 
         fun workName(trackId: Long): String = "pipemusic-download-$trackId"
 

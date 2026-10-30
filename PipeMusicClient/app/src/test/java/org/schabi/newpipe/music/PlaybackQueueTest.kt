@@ -150,4 +150,28 @@ class PlaybackQueueTest {
         assertFalse(queue.expandCurrent(3, listOf(track(10), track(11))))
         assertEquals(listOf(1L, 2L, 3L), queue.tracks.map { it.id })
     }
+
+    @Test
+    fun `moving a later song after the current one makes it play next`() {
+        val queue = PlaybackQueue(listOf(track(1), track(2), track(3), track(4)), startIndex = 1)
+        queue.setRepeatMode(PlaybackQueue.REPEAT_OFF)
+
+        queue.moveAfterCurrent(3)
+
+        assertEquals(listOf(1L, 2L, 4L, 3L), queue.tracks.map { it.id })
+        assertEquals(2L, queue.current?.id)
+        assertEquals(4L, queue.next()?.id)
+    }
+
+    @Test
+    fun `moving an earlier song after the current one keeps the current song`() {
+        val queue = PlaybackQueue(listOf(track(1), track(2), track(3)), startIndex = 1)
+
+        queue.moveAfterCurrent(0)
+
+        assertEquals(listOf(2L, 1L, 3L), queue.tracks.map { it.id })
+        assertEquals(2L, queue.current?.id)
+        queue.moveAfterCurrent(0)
+        assertEquals(listOf(2L, 1L, 3L), queue.tracks.map { it.id })
+    }
 }

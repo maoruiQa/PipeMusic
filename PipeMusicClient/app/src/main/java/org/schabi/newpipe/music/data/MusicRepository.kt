@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import org.schabi.newpipe.music.data.db.DOWNLOAD_COMPLETED
+import org.schabi.newpipe.music.data.db.DOWNLOAD_NONE
 import org.schabi.newpipe.music.data.db.MusicDatabase
 import org.schabi.newpipe.music.data.db.PlayHistoryEntity
 import org.schabi.newpipe.music.data.db.PlaylistEntity
@@ -103,7 +104,35 @@ class MusicRepository(context: Context, private val db: MusicDatabase) {
         }
     }
 
+    /** The existing row of a remote song, without creating one. */
+    suspend fun findStreamTrack(serviceId: Int, url: String): TrackEntity? =
+        trackDao.findByIdentity(streamIdentity(serviceId, url))
+
     suspend fun insertLocalTrack(track: TrackEntity): Long = trackDao.insertIgnore(track)
+
+    /**
+     * Saves a song merged from several parts. A song merged earlier from the same parts is
+     * replaced in place, keeping its playlists, favourite flag and play statistics.
+     */
+    suspend fun saveMergedTrack(track: TrackEntity): TrackEntity {
+        val existing = trackDao.findByIdentity(track.identity)
+            ?: return track.copy(id = trackDao.insertIgnore(track))
+        if (existing.mediaUri != track.mediaUri) {
+            deleteOwnedFile(existing.mediaUri)
+        }
+        if (existing.artworkUri != track.artworkUri) {
+            deleteOwnedFile(existing.artworkUri)
+        }
+        val updated = track.copy(
+            id = existing.id,
+            addedAt = existing.addedAt,
+            lastPlayedAt = existing.lastPlayedAt,
+            playCount = existing.playCount,
+            isFavorite = existing.isFavorite
+        )
+        trackDao.update(updated)
+        return updated
+    }
 
     suspend fun updateTrack(track: TrackEntity) = trackDao.update(track)
 
@@ -207,6 +236,30 @@ class MusicRepository(context: Context, private val db: MusicDatabase) {
             playlistDao.deleteEntriesForTrack(track.id)
         }
         trackDao.deleteByIds(tracks.map { it.id })
+    }
+
+    /**
+     * Deletes the downloaded audio of remote songs but keeps their rows, so they stay in
+     * playlists and can be downloaded again. Local songs are left alone.
+     */
+    suspend fun clearDownloads(ids: List<Long>) {
+        getTracks(ids).filter { it.type == TRACK_TYPE_STREAM }.forEach { track ->
+            deleteOwnedFile(track.mediaUri)
+            if (track.artworkUri != track.thumbnailUrl) {
+                deleteOwnedFile(track.artworkUri)
+            }
+            trackDao.update(
+                track.copy(
+                    mediaUri = null,
+                    fileSize = 0,
+                    mimeType = null,
+                    artworkUri = track.thumbnailUrl,
+                    downloadState = DOWNLOAD_NONE,
+                    downloadProgress = 0,
+                    downloadError = null
+                )
+            )
+        }
     }
 
     suspend fun clearPlayHistory() {

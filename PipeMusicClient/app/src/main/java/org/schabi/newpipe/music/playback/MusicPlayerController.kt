@@ -144,6 +144,20 @@ object MusicPlayerController {
         }
     }
 
+    fun moveInQueue(context: Context, from: Int, to: Int) {
+        send(context, MusicPlayerService.ACTION_MOVE) {
+            putExtra(MusicPlayerService.EXTRA_INDEX, from)
+            putExtra(MusicPlayerService.EXTRA_TO, to)
+        }
+    }
+
+    /** Moves a queued song right after the current one. */
+    fun playNextInQueue(context: Context, index: Int) {
+        send(context, MusicPlayerService.ACTION_MOVE_NEXT) {
+            putExtra(MusicPlayerService.EXTRA_INDEX, index)
+        }
+    }
+
     fun setSleepTimer(context: Context, minutes: Int) {
         if (!_state.value.hasTrack) {
             return

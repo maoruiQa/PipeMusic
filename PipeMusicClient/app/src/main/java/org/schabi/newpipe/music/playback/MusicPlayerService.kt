@@ -156,6 +156,18 @@ class MusicPlayerService : Service(), Player.Listener {
 
             ACTION_JUMP -> jumpTo(intent.getIntExtra(EXTRA_INDEX, 0))
             ACTION_REMOVE -> removeAt(intent.getIntExtra(EXTRA_INDEX, 0))
+            ACTION_MOVE -> {
+                queue.move(intent.getIntExtra(EXTRA_INDEX, 0), intent.getIntExtra(EXTRA_TO, 0))
+                saveQueue()
+                publish()
+            }
+
+            ACTION_MOVE_NEXT -> {
+                queue.moveAfterCurrent(intent.getIntExtra(EXTRA_INDEX, 0))
+                saveQueue()
+                publish()
+            }
+
             ACTION_SLEEP_TIMER -> setSleepTimer(intent.getIntExtra(EXTRA_MINUTES, 0))
             ACTION_STOP -> stopPlayback()
         }
@@ -770,11 +782,14 @@ class MusicPlayerService : Service(), Player.Listener {
         const val ACTION_EXPAND_CURRENT = "org.schabi.newpipe.music.EXPAND_CURRENT"
         const val ACTION_JUMP = "org.schabi.newpipe.music.JUMP"
         const val ACTION_REMOVE = "org.schabi.newpipe.music.REMOVE"
+        const val ACTION_MOVE = "org.schabi.newpipe.music.MOVE"
+        const val ACTION_MOVE_NEXT = "org.schabi.newpipe.music.MOVE_NEXT"
         const val ACTION_SLEEP_TIMER = "org.schabi.newpipe.music.SLEEP_TIMER"
         const val ACTION_STOP = "org.schabi.newpipe.music.STOP"
 
         const val EXTRA_IDS = "ids"
         const val EXTRA_INDEX = "index"
+        const val EXTRA_TO = "to"
         const val EXTRA_ANCHOR_ID = "anchor_id"
         const val EXTRA_POSITION = "position"
         const val EXTRA_REPEAT = "repeat"

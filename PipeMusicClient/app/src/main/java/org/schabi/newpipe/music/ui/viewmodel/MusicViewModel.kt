@@ -41,6 +41,7 @@ import org.schabi.newpipe.music.local.LocalImportWorker
 import org.schabi.newpipe.music.playback.MusicPlayerController
 import org.schabi.newpipe.music.stream.AudioDownloadWorker
 import org.schabi.newpipe.music.stream.MusicService
+import org.schabi.newpipe.music.stream.PartsMergeWorker
 import org.schabi.newpipe.music.stream.PlaylistPaging
 import org.schabi.newpipe.music.stream.StreamParts
 import org.schabi.newpipe.music.update.AppVersion
@@ -506,8 +507,15 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         _songList.value = null
     }
 
-    fun playSongList(context: Context, startIndex: Int) {
+    /** The listed songs at [indices], in list order. */
+    private fun songListPick(indices: List<Int>): List<SearchSong> {
         val songs = _songList.value?.songs.orEmpty()
+        return indices.distinct().sorted().mapNotNull { songs.getOrNull(it) }
+    }
+
+    /** Plays the songs at [indices], starting with the one at [startIndex] among them. */
+    fun playSongList(context: Context, indices: List<Int>, startIndex: Int) {
+        val songs = songListPick(indices)
         if (songs.isEmpty()) {
             return
         }
@@ -516,9 +524,9 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** Queues every song that is neither downloaded nor already in the download list. */
-    fun downloadSongList(context: Context, onQueued: (Int) -> Unit) {
-        val songs = _songList.value?.songs.orEmpty()
+    /** Queues every picked song that is neither downloaded nor already in the download list. */
+    fun downloadSongList(context: Context, indices: List<Int>, onQueued: (Int) -> Unit) {
+        val songs = songListPick(indices)
         if (songs.isEmpty()) {
             return
         }
@@ -537,8 +545,49 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun ensureSongListTracks(onReady: (List<TrackEntity>) -> Unit) {
-        val songs = _songList.value?.songs.orEmpty()
+    /**
+     * Deletes the downloaded audio of the picked songs and cancels their running downloads. The
+     * songs stay in playlists and can be downloaded again.
+     */
+    fun deleteSongListDownloads(context: Context, indices: List<Int>, onDeleted: (Int) -> Unit) {
+        val songs = songListPick(indices)
+        if (songs.isEmpty()) {
+            return
+        }
+        scope.launch {
+            val owned = songs.mapNotNull { repository.findStreamTrack(it.serviceId, it.url) }
+                .filter { track ->
+                    repository.localFile(track) != null ||
+                        track.downloadState == DOWNLOADING ||
+                        track.downloadState == DOWNLOAD_QUEUED
+                }
+            owned.forEach { AudioDownloadWorker.cancel(context, it.id) }
+            repository.clearDownloads(owned.map { it.id })
+            onDeleted(owned.size)
+        }
+    }
+
+    /** Joins the picked parts, in order, into one song named [title] in the library. */
+    fun mergeSongList(
+        context: Context,
+        indices: List<Int>,
+        title: String,
+        deleteParts: Boolean,
+        onQueued: () -> Unit
+    ) {
+        val songs = songListPick(indices)
+        if (songs.size < 2 || title.isBlank()) {
+            return
+        }
+        scope.launch {
+            val ids = ensurePartTracks(songs).map { it.id }
+            PartsMergeWorker.enqueue(context, ids, title.trim(), deleteParts)
+            onQueued()
+        }
+    }
+
+    fun ensureSongListTracks(indices: List<Int>, onReady: (List<TrackEntity>) -> Unit) {
+        val songs = songListPick(indices)
         if (songs.isEmpty()) {
             return
         }
@@ -614,16 +663,14 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         MusicPlayerController.playQueue(context, tracks, startIndex)
     }
 
-    fun playPlaylist(context: Context, playlistId: Long, shuffle: Boolean = false) {
-        scope.launch {
-            val songs = repository.playlistSongs(playlistId)
-            if (songs.isEmpty()) {
-                return@launch
-            }
-            MusicPlayerController.playQueue(context, songs, 0)
-            if (shuffle) {
-                MusicPlayerController.toggleShuffle(context)
-            }
+    fun shuffleTracks(context: Context, tracks: List<TrackEntity>) {
+        if (tracks.isEmpty()) {
+            return
+        }
+        MusicPlayerController.playQueue(context, tracks, tracks.indices.random())
+        // Shuffle is a toggle; only switch it on when it is not on already.
+        if (!MusicPlayerController.state.value.shuffle) {
+            MusicPlayerController.toggleShuffle(context)
         }
     }
 
