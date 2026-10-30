@@ -394,4 +394,16 @@
     <string name="pm_merge_failed">Не удалось объединить: %1$s</string>
     <string name="pm_merge_error_missing">Не удалось скачать части: %1$d</string>
     <string name="pm_merge_error_ffmpeg">Не удалось объединить части</string>
+    <string name="pm_action_parts">Части</string>
+    <string name="pm_part_chip">%1$s · Все части</string>
+    <string name="pm_part_position">P%1$d / %2$d</string>
+    <string name="pm_part_number">P%1$d</string>
+    <string name="pm_parts_badge">%1$dP</string>
+    <string name="pm_parts_subtitle">%1$s · частей: %2$d</string>
+    <string name="pm_action_show_parts">Показать части</string>
+    <string name="pm_action_hide_parts">Скрыть части</string>
+    <string name="pm_group_parts">Группировать многочастные видео</string>
+    <string name="pm_group_parts_sub">Показывать части одного видео одной записью в медиатеке и плейлистах</string>
+    <string name="pm_download_this_part">Скачать только эту часть</string>
+    <string name="pm_download_choose_parts">Выбрать части для скачивания или объединения…</string>
 </resources>

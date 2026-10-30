@@ -394,4 +394,16 @@
     <string name="pm_merge_failed">Zusammenführen fehlgeschlagen: %1$s</string>
     <string name="pm_merge_error_missing">%1$d Teile konnten nicht heruntergeladen werden</string>
     <string name="pm_merge_error_ffmpeg">Die Teile konnten nicht zusammengeführt werden</string>
+    <string name="pm_action_parts">Teile</string>
+    <string name="pm_part_chip">%1$s · Alle Teile</string>
+    <string name="pm_part_position">P%1$d / %2$d</string>
+    <string name="pm_part_number">P%1$d</string>
+    <string name="pm_parts_badge">%1$dP</string>
+    <string name="pm_parts_subtitle">%1$s · %2$d Teile</string>
+    <string name="pm_action_show_parts">Teile anzeigen</string>
+    <string name="pm_action_hide_parts">Teile ausblenden</string>
+    <string name="pm_group_parts">Mehrteilige Videos gruppieren</string>
+    <string name="pm_group_parts_sub">Die Teile eines Videos in Mediathek und Playlists als einen Eintrag anzeigen</string>
+    <string name="pm_download_this_part">Nur diesen Teil herunterladen</string>
+    <string name="pm_download_choose_parts">Teile zum Herunterladen oder Zusammenführen wählen…</string>
 </resources>

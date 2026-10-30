@@ -66,13 +66,20 @@ class MusicRepository(context: Context, private val db: MusicDatabase) {
         title: String,
         artist: String,
         durationMs: Long,
-        thumbnailUrl: String?
+        thumbnailUrl: String?,
+        /** The video's title for a part of a multi-part video; null keeps the stored album. */
+        album: String? = null
     ): TrackEntity {
         val identity = streamIdentity(serviceId, url)
+        val newAlbum = album?.takeIf { it.isNotBlank() }
         trackDao.findByIdentity(identity)?.let { existing ->
-            if (existing.title != title || existing.artworkUri == null && thumbnailUrl != null) {
+            if (existing.title != title ||
+                existing.artworkUri == null && thumbnailUrl != null ||
+                newAlbum != null && existing.album != newAlbum
+            ) {
                 val updated = existing.copy(
                     title = title,
+                    album = newAlbum ?: existing.album,
                     artist = artist.ifBlank { existing.artist },
                     durationMs = if (durationMs > 0) durationMs else existing.durationMs,
                     thumbnailUrl = thumbnailUrl ?: existing.thumbnailUrl,
@@ -88,7 +95,7 @@ class MusicRepository(context: Context, private val db: MusicDatabase) {
             type = TRACK_TYPE_STREAM,
             title = title,
             artist = artist,
-            album = "",
+            album = newAlbum.orEmpty(),
             durationMs = durationMs,
             artworkUri = thumbnailUrl,
             remoteUrl = url,

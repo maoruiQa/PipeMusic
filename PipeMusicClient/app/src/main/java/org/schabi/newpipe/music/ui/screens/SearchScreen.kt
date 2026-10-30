@@ -62,9 +62,11 @@ import androidx.compose.ui.unit.dp
 import org.schabi.newpipe.R
 import org.schabi.newpipe.music.data.db.SearchHistoryEntity
 import org.schabi.newpipe.music.stream.MusicService
-import org.schabi.newpipe.music.ui.components.Artwork
+import org.schabi.newpipe.music.stream.PartGroups
 import org.schabi.newpipe.music.ui.components.EmptyState
+import org.schabi.newpipe.music.ui.components.PartsArtwork
 import org.schabi.newpipe.music.ui.components.ServiceChip
+import org.schabi.newpipe.music.ui.components.partsSubtitle
 import org.schabi.newpipe.music.ui.formatDuration
 import org.schabi.newpipe.music.ui.viewmodel.SearchSong
 import org.schabi.newpipe.music.ui.viewmodel.SearchUiState
@@ -87,7 +89,9 @@ fun SearchScreen(
     activeDownloads: Int = 0,
     onOpenDownloads: () -> Unit = {},
     supportsParts: (Int) -> Boolean = { false },
-    onShowParts: (SearchSong) -> Unit = {}
+    onShowParts: (SearchSong) -> Unit = {},
+    /** Part counts by [PartGroups.key]; a count of 2 or more marks a multi-part video. */
+    partCounts: Map<String, Int> = emptyMap()
 ) {
     val colors = MaterialTheme.colorScheme
     val focusManager = LocalFocusManager.current
@@ -247,6 +251,7 @@ fun SearchScreen(
             items(state.songs) { song ->
                 SearchResultRow(
                     song = song,
+                    partCount = partCounts[PartGroups.key(song.serviceId, song.url)],
                     onPlay = { onPlay(song) },
                     onDownload = { onDownload(song) },
                     onAddToPlaylist = { onAddToPlaylist(song) },
@@ -313,6 +318,7 @@ fun SearchScreen(
 @Composable
 private fun SearchResultRow(
     song: SearchSong,
+    partCount: Int?,
     onPlay: () -> Unit,
     onDownload: () -> Unit,
     onAddToPlaylist: () -> Unit,
@@ -328,13 +334,9 @@ private fun SearchResultRow(
             .padding(horizontal = 8.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Artwork(
-            source = song.thumbnailUrl,
-            modifier = Modifier.size(54.dp),
-            shape = RoundedCornerShape(15.dp),
-            size = 54.dp
-        )
-        Spacer(Modifier.width(12.dp))
+        val multiPart = partCount != null && partCount >= 2 && onShowParts != null
+        PartsArtwork(source = song.thumbnailUrl, partCount = partCount)
+        Spacer(Modifier.width(10.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = song.title,
@@ -344,9 +346,13 @@ private fun SearchResultRow(
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = song.artist.ifBlank { stringResource(R.string.pm_unknown_artist) },
+                text = if (multiPart) {
+                    partsSubtitle(song.artist, partCount ?: 0)
+                } else {
+                    song.artist.ifBlank { stringResource(R.string.pm_unknown_artist) }
+                },
                 style = MaterialTheme.typography.bodyMedium,
-                color = colors.onSurfaceVariant,
+                color = if (multiPart) colors.primary else colors.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -356,12 +362,23 @@ private fun SearchResultRow(
             style = MaterialTheme.typography.labelMedium,
             color = colors.onSurfaceVariant
         )
-        IconButton(onClick = onDownload, modifier = Modifier.size(38.dp)) {
-            Icon(
-                imageVector = Icons.Rounded.CloudDownload,
-                contentDescription = stringResource(R.string.pm_action_download_audio),
-                tint = colors.primary
-            )
+        // A multi-part video leads to its parts: downloading would only fetch the first one.
+        if (multiPart && onShowParts != null) {
+            IconButton(onClick = onShowParts, modifier = Modifier.size(38.dp)) {
+                Icon(
+                    imageVector = Icons.Rounded.ViewList,
+                    contentDescription = stringResource(R.string.pm_action_all_parts),
+                    tint = colors.primary
+                )
+            }
+        } else {
+            IconButton(onClick = onDownload, modifier = Modifier.size(38.dp)) {
+                Icon(
+                    imageVector = Icons.Rounded.CloudDownload,
+                    contentDescription = stringResource(R.string.pm_action_download_audio),
+                    tint = colors.primary
+                )
+            }
         }
         Box {
             IconButton(onClick = { menu = true }, modifier = Modifier.size(32.dp)) {

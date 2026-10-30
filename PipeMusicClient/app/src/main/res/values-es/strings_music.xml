@@ -394,4 +394,16 @@
     <string name="pm_merge_failed">No se pudo unir: %1$s</string>
     <string name="pm_merge_error_missing">No se pudieron descargar %1$d partes</string>
     <string name="pm_merge_error_ffmpeg">No se pudieron unir las partes</string>
+    <string name="pm_action_parts">Partes</string>
+    <string name="pm_part_chip">%1$s · Todas las partes</string>
+    <string name="pm_part_position">P%1$d / %2$d</string>
+    <string name="pm_part_number">P%1$d</string>
+    <string name="pm_parts_badge">%1$dP</string>
+    <string name="pm_parts_subtitle">%1$s · %2$d partes</string>
+    <string name="pm_action_show_parts">Mostrar partes</string>
+    <string name="pm_action_hide_parts">Ocultar partes</string>
+    <string name="pm_group_parts">Agrupar vídeos de varias partes</string>
+    <string name="pm_group_parts_sub">Muestra las partes de un vídeo como una sola entrada en la biblioteca y las listas</string>
+    <string name="pm_download_this_part">Descargar solo esta parte</string>
+    <string name="pm_download_choose_parts">Elegir partes para descargar o unir…</string>
 </resources>

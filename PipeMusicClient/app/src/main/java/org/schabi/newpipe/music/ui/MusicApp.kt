@@ -36,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -53,6 +54,7 @@ import org.schabi.newpipe.music.data.db.TRACK_TYPE_STREAM
 import org.schabi.newpipe.music.data.db.TrackEntity
 import org.schabi.newpipe.music.playback.MusicPlayerController
 import org.schabi.newpipe.music.playback.PlaybackQueue
+import org.schabi.newpipe.music.stream.PartGroups
 import org.schabi.newpipe.music.ui.components.AddSongsSheet
 import org.schabi.newpipe.music.ui.components.AddToPlaylistSheet
 import org.schabi.newpipe.music.ui.components.AuroraBackground
@@ -96,6 +98,13 @@ fun MusicApp(
     val accountState by viewModel.accountState.collectAsStateWithLifecycle()
     val player by MusicPlayerController.state.collectAsStateWithLifecycle()
     val autoUpdateCheck by MusicGraph.preferences.autoUpdateCheck.collectAsStateWithLifecycle()
+    val groupParts by MusicGraph.preferences.groupParts.collectAsStateWithLifecycle()
+    val partCounts by viewModel.partCounts.collectAsStateWithLifecycle()
+    val showParts: (TrackEntity) -> Unit = { track ->
+        track.remoteUrl?.let { url ->
+            viewModel.openParts(track.serviceId, url, track.album.ifBlank { track.title })
+        }
+    }
     val checkingUpdate by viewModel.checkingUpdate.collectAsStateWithLifecycle()
     val availableUpdate by viewModel.availableUpdate.collectAsStateWithLifecycle()
 
@@ -304,6 +313,13 @@ fun MusicApp(
                                 onDelete = {
                                     viewModel.deletePlaylist(detailId)
                                     detailPlaylistId = null
+                                },
+                                groupParts = groupParts,
+                                supportsParts = viewModel::supportsParts,
+                                onShowParts = showParts,
+                                onAddTracks = { ids -> addToPlaylistIds = ids },
+                                onRemoveTracks = { removed ->
+                                    removed.forEach { viewModel.removeFromPlaylist(detailId, it.id) }
                                 }
                             )
                         }
@@ -368,7 +384,8 @@ fun MusicApp(
                                 supportsParts = viewModel::supportsParts,
                                 onShowParts = { song ->
                                     viewModel.openParts(song.serviceId, song.url, song.title)
-                                }
+                                },
+                                partCounts = partCounts
                             )
                         }
 
@@ -415,7 +432,10 @@ fun MusicApp(
                                     viewModel.deleteTracks(selected)
                                 },
                                 activeDownloads = activeDownloads,
-                                onOpenDownloads = { showDownloadsSheet = true }
+                                onOpenDownloads = { showDownloadsSheet = true },
+                                groupParts = groupParts,
+                                supportsParts = viewModel::supportsParts,
+                                onShowParts = showParts
                             )
                         }
 
@@ -454,6 +474,8 @@ fun MusicApp(
                                 onAutoUpdateChange = {
                                     MusicGraph.preferences.setAutoUpdateCheck(it)
                                 },
+                                groupParts = groupParts,
+                                onGroupPartsChange = { MusicGraph.preferences.setGroupParts(it) },
                                 onCheckUpdate = {
                                     viewModel.checkForUpdates(manual = true) { result ->
                                         val message = when (result) {
@@ -555,6 +577,11 @@ fun MusicApp(
             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
             exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
         ) {
+            val partPosition = player.current?.let { track ->
+                remember(track, player.queue, partCounts) {
+                    PartGroups.position(track, player.queue, partCounts, viewModel::supportsParts)
+                }
+            }
             FullPlayer(
                 state = player,
                 gradient = ColorSchemeFactory.gradientColors(themeConfig),
@@ -590,7 +617,17 @@ fun MusicApp(
                         viewModel.startDownload(context, it, ::showDownloadFeedback)
                     }
                 },
-                onSleep = { showSleepSheet = true }
+                onSleep = { showSleepSheet = true },
+                partLabel = partPosition?.let { position ->
+                    if (position.count != null) {
+                        stringResource(R.string.pm_part_position, position.number, position.count)
+                    } else {
+                        stringResource(R.string.pm_part_number, position.number)
+                    }
+                },
+                onParts = player.current?.takeIf { partPosition != null }?.let { track ->
+                    { showParts(track) }
+                }
             )
         }
 
@@ -680,7 +717,7 @@ fun MusicApp(
             onDelete = { viewModel.deleteTracks(listOf(track)) },
             onShowParts = track.remoteUrl
                 ?.takeIf { viewModel.supportsParts(track.serviceId) }
-                ?.let { url -> { viewModel.openParts(track.serviceId, url, track.title) } }
+                ?.let { { showParts(track) } }
         )
     }
 

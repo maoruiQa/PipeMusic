@@ -4,10 +4,12 @@ import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.Page
 import org.schabi.newpipe.extractor.ServiceList
 import org.schabi.newpipe.extractor.StreamingService
+import org.schabi.newpipe.extractor.services.bilibili.BilibiliService
 import org.schabi.newpipe.extractor.stream.StreamInfoItem
 import org.schabi.newpipe.util.ExtractorHelper
 
@@ -20,6 +22,12 @@ data class MusicService(
 data class SearchPage(
     val items: List<StreamInfoItem>,
     val nextPage: Page?
+)
+
+/** The parts of one multi-part video and the video's own title. */
+data class VideoParts(
+    val title: String,
+    val items: List<StreamInfoItem>
 )
 
 data class PlaylistPage(
@@ -115,16 +123,41 @@ class MusicSearchRepository(context: Context) {
     fun supportsParts(serviceId: Int): Boolean = serviceId == ServiceList.BiliBili.serviceId
 
     /**
-     * Every part of the multi-part video at [url], in upload order. Empty when the video has a
-     * single part or the service has no parts at all.
+     * Number of parts of the video at [url], from BiliBili's light part list; null when it
+     * cannot be told. Search results do not say whether a video has several parts.
      */
-    suspend fun loadParts(serviceId: Int, url: String): List<StreamInfoItem> =
+    suspend fun partCount(serviceId: Int, url: String): Int? =
+        withContext(Dispatchers.IO) {
+            val bvid = BVID.find(url)?.value
+            if (!supportsParts(serviceId) || bvid == null) {
+                return@withContext null
+            }
+            try {
+                val body = NewPipe.getDownloader()
+                    .get(BilibiliService.GET_PARTITION_URL + bvid, BilibiliService.getHeaders(url))
+                    .responseBody()
+                JSONObject(body).optJSONArray("data")?.length()
+            } catch (error: Exception) {
+                Log.w(TAG, "Part count lookup failed for $serviceId: ${error.javaClass.simpleName}")
+                null
+            }
+        }
+
+    /**
+     * Every part of the multi-part video at [url], in upload order. No parts when the video has
+     * a single part or the service has no parts at all.
+     */
+    suspend fun loadParts(serviceId: Int, url: String): VideoParts =
         withContext(Dispatchers.IO) {
             if (!supportsParts(serviceId)) {
-                return@withContext emptyList()
+                return@withContext VideoParts("", emptyList())
             }
             val info = ExtractorHelper.getStreamInfo(serviceId, url, false).blockingGet()
-            info.partitions.orEmpty().takeIf { it.size > 1 } ?: emptyList()
+            val items = info.partitions.orEmpty().takeIf { it.size > 1 } ?: emptyList()
+            VideoParts(
+                title = StreamParts.videoTitle(info.name.orEmpty(), items.map { it.name }),
+                items = items
+            )
         }
 
     suspend fun linkType(serviceId: Int, url: String): StreamingService.LinkType =
@@ -160,6 +193,7 @@ class MusicSearchRepository(context: Context) {
 
     private companion object {
         const val TAG = "MusicSearch"
+        val BVID = Regex("BV[0-9A-Za-z]{10}")
     }
 
     private fun shortName(name: String): String = when {

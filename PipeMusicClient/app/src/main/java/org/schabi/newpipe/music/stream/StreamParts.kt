@@ -26,6 +26,23 @@ object StreamParts {
         return partUrls.indexOfFirst { partNumber(it) == number }
     }
 
+    private val PART_PREFIX = Regex("""^P\d+ .*? \| """)
+
+    /**
+     * The video's own title. BiliBili names a multi-part video after its part as
+     * "P<n> <part> | <title>"; [partNames] (in part order) tell where the part name ends.
+     */
+    fun videoTitle(name: String, partNames: List<String?>): String {
+        val prefix = partNames.withIndex()
+            .map { (index, part) -> "P${index + 1} ${part.orEmpty()} | " }
+            .firstOrNull { name.startsWith(it) }
+        return when {
+            prefix != null -> name.removePrefix(prefix)
+            partNames.size > 1 -> name.replaceFirst(PART_PREFIX, "")
+            else -> name
+        }.ifBlank { name }
+    }
+
     /** Song title for a part: its own name, or "P<n>" when the uploader left it blank. */
     fun title(partName: String?, number: Int): String =
         partName?.trim().orEmpty().ifBlank { "P$number" }

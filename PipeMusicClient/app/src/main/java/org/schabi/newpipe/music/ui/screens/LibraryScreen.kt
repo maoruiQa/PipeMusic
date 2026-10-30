@@ -67,9 +67,12 @@ import org.schabi.newpipe.music.data.db.TrackEntity
 import org.schabi.newpipe.music.local.ImportState
 import org.schabi.newpipe.music.playback.PlayerUiState
 import org.schabi.newpipe.music.ui.components.EmptyState
+import org.schabi.newpipe.music.stream.PartGroups
 import org.schabi.newpipe.music.ui.components.GlassCard
+import org.schabi.newpipe.music.ui.components.PartGroupRow
 import org.schabi.newpipe.music.ui.components.SectionTitle
 import org.schabi.newpipe.music.ui.components.SongRow
+import org.schabi.newpipe.music.ui.components.trackEntries
 import org.schabi.newpipe.music.ui.formatBytes
 import org.schabi.newpipe.music.ui.formatTotalDuration
 
@@ -105,7 +108,10 @@ fun LibraryScreen(
     onAddSelected: (List<Long>) -> Unit,
     onDeleteSelected: (List<TrackEntity>) -> Unit,
     activeDownloads: Int = 0,
-    onOpenDownloads: () -> Unit = {}
+    onOpenDownloads: () -> Unit = {},
+    groupParts: Boolean = true,
+    supportsParts: (Int) -> Boolean = { false },
+    onShowParts: (TrackEntity) -> Unit = {}
 ) {
     val colors = MaterialTheme.colorScheme
     val context = LocalContext.current
@@ -115,6 +121,7 @@ fun LibraryScreen(
     var selection by remember { mutableStateOf(setOf<Long>()) }
     var sortMenu by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(setOf<String>()) }
 
     val offline = tracks.filter {
         it.type == TRACK_TYPE_LOCAL || it.downloadState == DOWNLOAD_COMPLETED
@@ -138,6 +145,16 @@ fun LibraryScreen(
             LibrarySort.DURATION -> base.sortedByDescending { it.durationMs }
             LibrarySort.ADDED -> base.sortedByDescending { it.addedAt }
         }
+    }
+
+    val entries = remember(filtered, groupParts) {
+        PartGroups.group(filtered, groupParts, supportsParts)
+    }
+    // Songs in the order they are listed, with the parts of a video next to each other.
+    val listed = remember(entries) { entries.flatMap { it.tracks } }
+
+    fun toggle(ids: Collection<Long>) {
+        selection = if (ids.all { it in selection }) selection - ids.toSet() else selection + ids
     }
 
     val selectedTracks = tracks.filter { it.id in selection }
@@ -540,7 +557,7 @@ fun LibraryScreen(
                     )
                 }
             }
-            items(filtered) { track ->
+            val songRow: @Composable (TrackEntity) -> Unit = { track ->
                 SongRow(
                     track = track,
                     isCurrent = player.current?.id == track.id,
@@ -548,25 +565,50 @@ fun LibraryScreen(
                     selected = track.id in selection,
                     onClick = {
                         if (selection.isNotEmpty()) {
-                            selection = if (track.id in selection) {
-                                selection - track.id
-                            } else {
-                                selection + track.id
-                            }
+                            toggle(listOf(track.id))
                         } else {
-                            onPlayList(filtered, filtered.indexOf(track))
+                            onPlayList(listed, listed.indexOf(track))
                         }
                     },
-                    onLongClick = {
-                        selection = if (track.id in selection) {
-                            selection - track.id
-                        } else {
-                            selection + track.id
-                        }
-                    },
+                    onLongClick = { toggle(listOf(track.id)) },
                     onMore = { onMore(track) }
                 )
             }
+            trackEntries(
+                entries = entries,
+                expanded = expanded,
+                song = songRow,
+                part = songRow,
+                group = { group ->
+                    val ids = group.tracks.map { it.id }
+                    PartGroupRow(
+                        entry = group,
+                        expanded = group.key in expanded,
+                        isCurrent = player.current?.id in ids,
+                        selected = ids.all { it in selection },
+                        onClick = {
+                            if (selection.isNotEmpty()) {
+                                toggle(ids)
+                            } else {
+                                expanded = if (group.key in expanded) {
+                                    expanded - group.key
+                                } else {
+                                    expanded + group.key
+                                }
+                            }
+                        },
+                        onLongClick = { toggle(ids) },
+                        onPlay = { onPlayList(group.tracks, 0) },
+                        onAddToPlaylist = { onAddSelected(ids) },
+                        onShowParts = { onShowParts(group.tracks.first()) },
+                        onRemove = {
+                            selection = ids.toSet()
+                            confirmDelete = true
+                        },
+                        removeLabel = stringResource(R.string.pm_action_delete)
+                    )
+                }
+            )
         }
     }
 

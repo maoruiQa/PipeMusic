@@ -121,6 +121,16 @@ class MusicPreferences(context: Context) {
         _autoUpdateCheck.value = enabled
     }
 
+    private val _groupParts = MutableStateFlow(prefs.getBoolean(KEY_GROUP_PARTS, true))
+
+    /** Whether the parts of a multi-part video show as one entry in the library and playlists. */
+    val groupParts: StateFlow<Boolean> = _groupParts.asStateFlow()
+
+    fun setGroupParts(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_GROUP_PARTS, enabled).apply()
+        _groupParts.value = enabled
+    }
+
     var lastUpdateCheck: Long
         get() = prefs.getLong(KEY_LAST_UPDATE_CHECK, 0)
         set(value) = prefs.edit().putLong(KEY_LAST_UPDATE_CHECK, value).apply()
@@ -179,5 +189,6 @@ class MusicPreferences(context: Context) {
         const val KEY_AUTO_UPDATE = "auto_update_check"
         const val KEY_LAST_UPDATE_CHECK = "last_update_check"
         const val KEY_SKIPPED_UPDATE = "skipped_update_version"
+        const val KEY_GROUP_PARTS = "group_parts"
     }
 }

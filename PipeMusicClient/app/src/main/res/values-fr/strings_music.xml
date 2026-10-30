@@ -394,4 +394,16 @@
     <string name="pm_merge_failed">Échec de la fusion : %1$s</string>
     <string name="pm_merge_error_missing">%1$d parties n\'ont pas pu être téléchargées</string>
     <string name="pm_merge_error_ffmpeg">Les parties n\'ont pas pu être fusionnées</string>
+    <string name="pm_action_parts">Parties</string>
+    <string name="pm_part_chip">%1$s · Toutes les parties</string>
+    <string name="pm_part_position">P%1$d / %2$d</string>
+    <string name="pm_part_number">P%1$d</string>
+    <string name="pm_parts_badge">%1$dP</string>
+    <string name="pm_parts_subtitle">%1$s · %2$d parties</string>
+    <string name="pm_action_show_parts">Afficher les parties</string>
+    <string name="pm_action_hide_parts">Masquer les parties</string>
+    <string name="pm_group_parts">Regrouper les vidéos en plusieurs parties</string>
+    <string name="pm_group_parts_sub">Afficher les parties d\'une vidéo comme une seule entrée dans la bibliothèque et les playlists</string>
+    <string name="pm_download_this_part">Télécharger cette partie</string>
+    <string name="pm_download_choose_parts">Choisir des parties à télécharger ou fusionner…</string>
 </resources>

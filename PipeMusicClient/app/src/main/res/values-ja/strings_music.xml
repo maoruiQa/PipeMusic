@@ -394,4 +394,16 @@
     <string name="pm_merge_failed">結合に失敗しました: %1$s</string>
     <string name="pm_merge_error_missing">%1$d 個のパートをダウンロードできませんでした</string>
     <string name="pm_merge_error_ffmpeg">パートを結合できませんでした</string>
+    <string name="pm_action_parts">パート</string>
+    <string name="pm_part_chip">%1$s · すべてのパート</string>
+    <string name="pm_part_position">P%1$d / %2$d</string>
+    <string name="pm_part_number">P%1$d</string>
+    <string name="pm_parts_badge">%1$dP</string>
+    <string name="pm_parts_subtitle">%1$s · %2$d パート</string>
+    <string name="pm_action_show_parts">パートを表示</string>
+    <string name="pm_action_hide_parts">パートを隠す</string>
+    <string name="pm_group_parts">複数パートの動画をまとめる</string>
+    <string name="pm_group_parts_sub">ライブラリとプレイリストで、1 つの動画のパートを 1 項目として表示します</string>
+    <string name="pm_download_this_part">このパートだけダウンロード</string>
+    <string name="pm_download_choose_parts">ダウンロード・結合するパートを選択…</string>
 </resources>

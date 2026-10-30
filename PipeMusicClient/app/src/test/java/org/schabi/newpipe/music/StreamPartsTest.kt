@@ -22,6 +22,15 @@ class StreamPartsTest {
     }
 
     @Test
+    fun `video title drops the part prefix`() {
+        val parts = listOf("Intro | Basics", "Vectors")
+        assertEquals("Course | 2016", StreamParts.videoTitle("P1 Intro | Basics | Course | 2016", parts))
+        assertEquals("Course", StreamParts.videoTitle("P2 Vectors | Course", parts))
+        assertEquals("Course", StreamParts.videoTitle("P9 Other | Course", parts))
+        assertEquals("Single | video", StreamParts.videoTitle("Single | video", emptyList()))
+    }
+
+    @Test
     fun `exact URLs match their own part`() {
         assertEquals(1, StreamParts.indexOf(parts, parts[1]))
     }

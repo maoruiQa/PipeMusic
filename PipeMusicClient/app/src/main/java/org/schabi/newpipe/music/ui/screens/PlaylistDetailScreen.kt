@@ -29,6 +29,7 @@ import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.QueueMusic
+import androidx.compose.material.icons.rounded.RemoveCircleOutline
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.Sort
@@ -65,9 +66,12 @@ import org.schabi.newpipe.music.data.PlaylistSort
 import org.schabi.newpipe.music.data.db.PlaylistEntity
 import org.schabi.newpipe.music.data.db.TrackEntity
 import org.schabi.newpipe.music.playback.PlayerUiState
+import org.schabi.newpipe.music.stream.PartGroups
 import org.schabi.newpipe.music.ui.components.Artwork
 import org.schabi.newpipe.music.ui.components.EmptyState
+import org.schabi.newpipe.music.ui.components.PartGroupRow
 import org.schabi.newpipe.music.ui.components.SongRow
+import org.schabi.newpipe.music.ui.components.trackEntries
 import org.schabi.newpipe.music.ui.formatTotalDuration
 
 @Composable
@@ -82,7 +86,12 @@ fun PlaylistDetailScreen(
     onTrackMore: (TrackEntity) -> Unit,
     onAddSongs: () -> Unit,
     onRename: (String) -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    groupParts: Boolean = true,
+    supportsParts: (Int) -> Boolean = { false },
+    onShowParts: (TrackEntity) -> Unit = {},
+    onAddTracks: (List<Long>) -> Unit = {},
+    onRemoveTracks: (List<TrackEntity>) -> Unit = {}
 ) {
     val colors = MaterialTheme.colorScheme
     val context = LocalContext.current
@@ -100,6 +109,12 @@ fun PlaylistDetailScreen(
     val shown = remember(tracks, query, sort, reversed) {
         PlaylistOrder.apply(tracks, query, sort, reversed)
     }
+    var expanded by remember { mutableStateOf(setOf<String>()) }
+    val entries = remember(shown, groupParts) {
+        PartGroups.group(shown, groupParts, supportsParts)
+    }
+    // Songs in the order they are listed, with the parts of a video next to each other.
+    val listed = remember(entries) { entries.flatMap { it.tracks } }
 
     LazyColumn(
         modifier = Modifier
@@ -208,7 +223,7 @@ fun PlaylistDetailScreen(
                     Spacer(Modifier.height(12.dp))
                     Row {
                         Button(
-                            onClick = { onPlayAll(shown) },
+                            onClick = { onPlayAll(listed) },
                             enabled = shown.isNotEmpty(),
                             shape = CircleShape,
                             colors = ButtonDefaults.buttonColors(
@@ -226,7 +241,7 @@ fun PlaylistDetailScreen(
                         }
                         Spacer(Modifier.width(8.dp))
                         IconButton(
-                            onClick = { onShuffle(shown) },
+                            onClick = { onShuffle(listed) },
                             enabled = shown.isNotEmpty(),
                             modifier = Modifier
                                 .size(40.dp)
@@ -358,15 +373,41 @@ fun PlaylistDetailScreen(
                     )
                 }
             }
-            items(shown, key = { it.id }) { track ->
+            val songRow: @Composable (TrackEntity) -> Unit = { track ->
                 SongRow(
                     track = track,
                     isCurrent = player.current?.id == track.id,
                     isPlaying = player.isPlaying,
-                    onClick = { onPlayTrack(shown, shown.indexOf(track)) },
+                    onClick = { onPlayTrack(listed, listed.indexOf(track)) },
                     onMore = { onTrackMore(track) }
                 )
             }
+            trackEntries(
+                entries = entries,
+                expanded = expanded,
+                song = songRow,
+                part = songRow,
+                group = { group ->
+                    PartGroupRow(
+                        entry = group,
+                        expanded = group.key in expanded,
+                        isCurrent = group.tracks.any { it.id == player.current?.id },
+                        onClick = {
+                            expanded = if (group.key in expanded) {
+                                expanded - group.key
+                            } else {
+                                expanded + group.key
+                            }
+                        },
+                        onPlay = { onPlayTrack(group.tracks, 0) },
+                        onAddToPlaylist = { onAddTracks(group.tracks.map { it.id }) },
+                        onShowParts = { onShowParts(group.tracks.first()) },
+                        onRemove = { onRemoveTracks(group.tracks) },
+                        removeLabel = stringResource(R.string.pm_action_remove_from_playlist),
+                        removeIcon = Icons.Rounded.RemoveCircleOutline
+                    )
+                }
+            )
         }
     }
 

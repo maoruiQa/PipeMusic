@@ -34,6 +34,7 @@ import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Public
 import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material.icons.rounded.Timer
+import androidx.compose.material.icons.rounded.ViewList
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
@@ -85,6 +86,8 @@ fun ProfileScreen(
     autoUpdateCheck: Boolean,
     checkingUpdate: Boolean,
     onAutoUpdateChange: (Boolean) -> Unit,
+    groupParts: Boolean,
+    onGroupPartsChange: (Boolean) -> Unit,
     onCheckUpdate: () -> Unit,
     onClearHistory: () -> Unit,
     onDeleteAll: () -> Unit,
@@ -309,6 +312,15 @@ fun ProfileScreen(
                     title = stringResource(R.string.pm_download_quality),
                     subtitle = qualityLabel,
                     onClick = { qualityDialog = true }
+                )
+                SettingsRow(
+                    icon = Icons.Rounded.ViewList,
+                    title = stringResource(R.string.pm_group_parts),
+                    subtitle = stringResource(R.string.pm_group_parts_sub),
+                    onClick = { onGroupPartsChange(!groupParts) },
+                    trailing = {
+                        Switch(checked = groupParts, onCheckedChange = onGroupPartsChange)
+                    }
                 )
                 SettingsRow(
                     icon = Icons.Rounded.Timer,

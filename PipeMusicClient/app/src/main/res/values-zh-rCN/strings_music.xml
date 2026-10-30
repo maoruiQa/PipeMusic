@@ -394,4 +394,16 @@
     <string name="pm_merge_failed">合并失败：%1$s</string>
     <string name="pm_merge_error_missing">有 %1$d 个分P无法下载</string>
     <string name="pm_merge_error_ffmpeg">无法合并这些分P</string>
+    <string name="pm_action_parts">分P</string>
+    <string name="pm_part_chip">%1$s · 所有分P</string>
+    <string name="pm_part_position">P%1$d / %2$d</string>
+    <string name="pm_part_number">P%1$d</string>
+    <string name="pm_parts_badge">%1$dP</string>
+    <string name="pm_parts_subtitle">%1$s · %2$d 个分P</string>
+    <string name="pm_action_show_parts">展开分P</string>
+    <string name="pm_action_hide_parts">收起分P</string>
+    <string name="pm_group_parts">分P视频合为一组</string>
+    <string name="pm_group_parts_sub">在曲库和歌单中把同一视频的分P显示为一个合集</string>
+    <string name="pm_download_this_part">只下载这一P</string>
+    <string name="pm_download_choose_parts">选择分P下载或合并…</string>
 </resources>

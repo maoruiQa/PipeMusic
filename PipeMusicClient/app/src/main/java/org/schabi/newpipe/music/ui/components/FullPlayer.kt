@@ -2,6 +2,7 @@ package org.schabi.newpipe.music.ui.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -17,12 +18,14 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
@@ -38,8 +41,11 @@ import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material.icons.rounded.Timer
+import androidx.compose.material.icons.rounded.ViewList
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -104,7 +110,10 @@ fun FullPlayer(
     onAddToPlaylist: () -> Unit,
     onDownload: () -> Unit,
     onSleep: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    /** "P3 / 12" when the song is a part of a multi-part video. */
+    partLabel: String? = null,
+    onParts: (() -> Unit)? = null
 ) {
     val track = state.current ?: return
     val colors = MaterialTheme.colorScheme
@@ -262,6 +271,11 @@ fun FullPlayer(
                 }
             }
 
+            if (partLabel != null && onParts != null) {
+                Spacer(Modifier.height(8.dp))
+                PartsChip(label = partLabel, onClick = onParts)
+            }
+
             Spacer(Modifier.height(4.dp))
             PlayerSeekBar(
                 positionMs = if (dragging) dragValue.toLong() else livePosition,
@@ -400,17 +414,60 @@ fun FullPlayer(
                     label = stringResource(R.string.pm_action_add_to_playlist),
                     onClick = onAddToPlaylist
                 )
-                PlayerAction(
-                    icon = downloadIcon,
-                    label = downloadLabel,
-                    tint = downloadTint,
-                    progress = if (downloadState == DOWNLOADING) {
-                        (downloadProgress / 100f).coerceIn(0f, 1f)
-                    } else {
-                        null
-                    },
-                    onClick = onDownload
-                )
+                // A part of a multi-part video can be downloaded on its own or together with
+                // other parts picked from the parts list, which also merges them.
+                var downloadMenu by remember { mutableStateOf(false) }
+                Box {
+                    PlayerAction(
+                        icon = downloadIcon,
+                        label = downloadLabel,
+                        tint = downloadTint,
+                        progress = if (downloadState == DOWNLOADING) {
+                            (downloadProgress / 100f).coerceIn(0f, 1f)
+                        } else {
+                            null
+                        },
+                        onClick = if (onParts != null) {
+                            { downloadMenu = true }
+                        } else {
+                            onDownload
+                        }
+                    )
+                    if (onParts != null) {
+                        DropdownMenu(
+                            expanded = downloadMenu,
+                            onDismissRequest = { downloadMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.pm_download_this_part)) },
+                                leadingIcon = {
+                                    Icon(Icons.Rounded.Download, contentDescription = null)
+                                },
+                                onClick = {
+                                    downloadMenu = false
+                                    onDownload()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.pm_download_choose_parts)) },
+                                leadingIcon = {
+                                    Icon(Icons.Rounded.ViewList, contentDescription = null)
+                                },
+                                onClick = {
+                                    downloadMenu = false
+                                    onParts()
+                                }
+                            )
+                        }
+                    }
+                }
+                if (onParts != null) {
+                    PlayerAction(
+                        icon = Icons.Rounded.ViewList,
+                        label = stringResource(R.string.pm_action_parts),
+                        onClick = onParts
+                    )
+                }
                 PlayerAction(
                     icon = Icons.Rounded.Timer,
                     label = stringResource(
@@ -428,6 +485,40 @@ fun FullPlayer(
             }
             Spacer(Modifier.height(16.dp))
         }
+    }
+}
+
+/** Marks a part of a multi-part video and opens the list of all its parts. */
+@Composable
+private fun PartsChip(label: String, onClick: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    Row(
+        modifier = Modifier
+            .clip(CircleShape)
+            .background(colors.primary.copy(alpha = 0.14f))
+            .clickable(onClick = onClick)
+            .padding(start = 10.dp, end = 6.dp, top = 5.dp, bottom = 5.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Rounded.ViewList,
+            contentDescription = null,
+            tint = colors.primary,
+            modifier = Modifier.size(16.dp)
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(
+            text = stringResource(R.string.pm_part_chip, label),
+            style = MaterialTheme.typography.labelLarge,
+            color = colors.primary,
+            maxLines = 1
+        )
+        Icon(
+            imageVector = Icons.Rounded.ChevronRight,
+            contentDescription = null,
+            tint = colors.primary,
+            modifier = Modifier.size(18.dp)
+        )
     }
 }
 
