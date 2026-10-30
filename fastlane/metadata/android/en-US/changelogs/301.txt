@@ -1,0 +1,3 @@
+### New Features
+
+- Multi-part videos (BiliBili P1, P2, ...): playing one part now keeps going with the other parts, and the new "All parts" action in search results and the song menu lets you play, download or add every part to a playlist at once
