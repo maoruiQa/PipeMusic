@@ -7,6 +7,7 @@ import kotlinx.coroutines.withContext
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.Page
 import org.schabi.newpipe.extractor.ServiceList
+import org.schabi.newpipe.extractor.StreamingService
 import org.schabi.newpipe.extractor.stream.StreamInfoItem
 import org.schabi.newpipe.util.ExtractorHelper
 
@@ -17,6 +18,13 @@ data class MusicService(
 )
 
 data class SearchPage(
+    val items: List<StreamInfoItem>,
+    val nextPage: Page?
+)
+
+data class PlaylistPage(
+    val name: String,
+    val uploaderName: String,
     val items: List<StreamInfoItem>,
     val nextPage: Page?
 )
@@ -117,6 +125,33 @@ class MusicSearchRepository(context: Context) {
             }
             val info = ExtractorHelper.getStreamInfo(serviceId, url, false).blockingGet()
             info.partitions.orEmpty().takeIf { it.size > 1 } ?: emptyList()
+        }
+
+    suspend fun linkType(serviceId: Int, url: String): StreamingService.LinkType =
+        withContext(Dispatchers.IO) {
+            runCatching { NewPipe.getService(serviceId).getLinkTypeByUrl(url.trim()) }
+                .getOrDefault(StreamingService.LinkType.NONE)
+        }
+
+    /** First page of a playlist or album, with the list's own name and uploader. */
+    suspend fun loadPlaylist(serviceId: Int, url: String): PlaylistPage =
+        withContext(Dispatchers.IO) {
+            val info = ExtractorHelper.getPlaylistInfo(serviceId, url, false).blockingGet()
+            PlaylistPage(
+                name = info.name.orEmpty(),
+                uploaderName = info.uploaderName.orEmpty(),
+                items = info.relatedItems.orEmpty(),
+                nextPage = info.nextPage?.takeIf { Page.isValid(it) }
+            )
+        }
+
+    suspend fun loadMorePlaylist(serviceId: Int, url: String, page: Page): SearchPage =
+        withContext(Dispatchers.IO) {
+            val more = ExtractorHelper.getMorePlaylistItems(serviceId, url, page).blockingGet()
+            SearchPage(
+                items = more.items.orEmpty(),
+                nextPage = more.nextPage?.takeIf { Page.isValid(it) }
+            )
         }
 
     suspend fun serviceIdForUrl(url: String): Int? = withContext(Dispatchers.IO) {

@@ -359,7 +359,11 @@
     <string name="pm_parts_count">%1$d パート</string>
     <string name="pm_parts_single">この動画のパートは 1 つだけです。</string>
     <string name="pm_action_download_all">すべてダウンロード</string>
-    <string name="pm_feedback_parts_download_queued">%1$d 個のパートをダウンロードリストに追加しました</string>
-    <string name="pm_feedback_parts_download_none">すべてのパートはダウンロード済みまたはダウンロード中です</string>
+    <string name="pm_feedback_list_download_queued">%1$d 曲をダウンロードリストに追加しました</string>
+    <string name="pm_feedback_list_download_none">すべての曲はダウンロード済みまたはダウンロード中です</string>
     <string name="pm_error_parts_failed">この動画のパートを読み込めませんでした。</string>
+    <string name="pm_link_playlist_empty">このプレイリストは空です。</string>
+    <string name="pm_link_playlist_truncated">最初の %1$d 曲を表示しています</string>
+    <string name="pm_error_playlist_failed">このプレイリストを読み込めませんでした。</string>
+    <string name="pm_error_channel_link">チャンネルのリンクにはまだ対応していません。曲、プレイリスト、アルバムのリンクを開いてください。</string>
 </resources>

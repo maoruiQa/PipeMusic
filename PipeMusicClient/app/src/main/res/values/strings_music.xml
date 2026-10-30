@@ -359,7 +359,11 @@
     <string name="pm_parts_count">%1$d parts</string>
     <string name="pm_parts_single">This video has only one part.</string>
     <string name="pm_action_download_all">Download all</string>
-    <string name="pm_feedback_parts_download_queued">%1$d parts added to the download list</string>
-    <string name="pm_feedback_parts_download_none">All parts are already downloaded or downloading</string>
+    <string name="pm_feedback_list_download_queued">%1$d songs added to the download list</string>
+    <string name="pm_feedback_list_download_none">Every song is already downloaded or downloading</string>
     <string name="pm_error_parts_failed">Could not load the parts of this video.</string>
+    <string name="pm_link_playlist_empty">This playlist is empty.</string>
+    <string name="pm_link_playlist_truncated">Showing the first %1$d songs</string>
+    <string name="pm_error_playlist_failed">Could not load this playlist.</string>
+    <string name="pm_error_channel_link">Channel links are not supported yet. Open a song, playlist or album link instead.</string>
 </resources>

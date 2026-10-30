@@ -359,7 +359,11 @@
     <string name="pm_parts_count">%1$d partes</string>
     <string name="pm_parts_single">Este vídeo solo tiene una parte.</string>
     <string name="pm_action_download_all">Descargar todo</string>
-    <string name="pm_feedback_parts_download_queued">%1$d partes añadidas a la lista de descargas</string>
-    <string name="pm_feedback_parts_download_none">Todas las partes ya están descargadas o descargándose</string>
+    <string name="pm_feedback_list_download_queued">%1$d canciones añadidas a la lista de descargas</string>
+    <string name="pm_feedback_list_download_none">Todas las canciones ya están descargadas o descargándose</string>
     <string name="pm_error_parts_failed">No se pudieron cargar las partes de este vídeo.</string>
+    <string name="pm_link_playlist_empty">Esta lista de reproducción está vacía.</string>
+    <string name="pm_link_playlist_truncated">Mostrando las primeras %1$d canciones</string>
+    <string name="pm_error_playlist_failed">No se pudo cargar esta lista de reproducción.</string>
+    <string name="pm_error_channel_link">Los enlaces de canal aún no son compatibles. Abre un enlace de canción, lista o álbum.</string>
 </resources>

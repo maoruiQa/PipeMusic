@@ -359,7 +359,11 @@
     <string name="pm_parts_count">Частей: %1$d</string>
     <string name="pm_parts_single">У этого видео только одна часть.</string>
     <string name="pm_action_download_all">Скачать все</string>
-    <string name="pm_feedback_parts_download_queued">Частей добавлено в загрузки: %1$d</string>
-    <string name="pm_feedback_parts_download_none">Все части уже скачаны или скачиваются</string>
+    <string name="pm_feedback_list_download_queued">Треков добавлено в загрузки: %1$d</string>
+    <string name="pm_feedback_list_download_none">Все треки уже скачаны или скачиваются</string>
     <string name="pm_error_parts_failed">Не удалось загрузить части этого видео.</string>
+    <string name="pm_link_playlist_empty">Этот плейлист пуст.</string>
+    <string name="pm_link_playlist_truncated">Показаны первые треки: %1$d</string>
+    <string name="pm_error_playlist_failed">Не удалось загрузить этот плейлист.</string>
+    <string name="pm_error_channel_link">Ссылки на каналы пока не поддерживаются. Откройте ссылку на трек, плейлист или альбом.</string>
 </resources>

@@ -26,6 +26,7 @@ import kotlinx.coroutines.withContext
 import org.schabi.newpipe.BuildConfig
 import org.schabi.newpipe.R
 import org.schabi.newpipe.extractor.Page
+import org.schabi.newpipe.extractor.StreamingService
 import org.schabi.newpipe.extractor.stream.StreamInfoItem
 import org.schabi.newpipe.music.MusicGraph
 import org.schabi.newpipe.music.data.MusicAccountService
@@ -40,6 +41,7 @@ import org.schabi.newpipe.music.local.LocalImportWorker
 import org.schabi.newpipe.music.playback.MusicPlayerController
 import org.schabi.newpipe.music.stream.AudioDownloadWorker
 import org.schabi.newpipe.music.stream.MusicService
+import org.schabi.newpipe.music.stream.PlaylistPaging
 import org.schabi.newpipe.music.stream.StreamParts
 import org.schabi.newpipe.music.update.AppVersion
 import org.schabi.newpipe.music.update.ReleaseInfo
@@ -68,13 +70,26 @@ data class SearchUiState(
     val searchSubmitted: Boolean = false
 )
 
-/** Bottom sheet listing every part of a multi-part video. */
-data class PartsUiState(
+enum class SongListKind {
+    /** The parts of one multi-part video. */
+    PARTS,
+
+    /** A playlist or album opened from a link. */
+    PLAYLIST
+}
+
+/** Bottom sheet listing a group of songs that can be played or downloaded together. */
+data class SongListUiState(
+    val kind: SongListKind,
     val serviceId: Int,
     val url: String,
     val title: String,
-    val parts: List<SearchSong> = emptyList(),
+    val songs: List<SearchSong> = emptyList(),
     val loading: Boolean = true,
+    /** Later playlist pages are still being fetched. */
+    val loadingMore: Boolean = false,
+    /** The playlist is longer than [PlaylistPaging.MAX_SONGS]; only the first ones are listed. */
+    val truncated: Boolean = false,
     val error: String? = null
 )
 
@@ -101,7 +116,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         org.schabi.newpipe.music.data.MusicLocale.localized(application)
     private val repository = MusicGraph.repository
     private var searchJob: Job? = null
-    private var partsJob: Job? = null
+    private var songListJob: Job? = null
     private var linkRequestId = 0
 
     val tracks: StateFlow<List<TrackEntity>> = repository.allTracks
@@ -137,8 +152,8 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     )
     val search: StateFlow<SearchUiState> = _search.asStateFlow()
 
-    private val _parts = MutableStateFlow<PartsUiState?>(null)
-    val parts: StateFlow<PartsUiState?> = _parts.asStateFlow()
+    private val _songList = MutableStateFlow<SongListUiState?>(null)
+    val songList: StateFlow<SongListUiState?> = _songList.asStateFlow()
 
     fun onQueryChange(query: String) {
         // Typing alone must not be treated as a submitted search, otherwise the result list
@@ -301,6 +316,28 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
                     }
                     return@launch
                 }
+                when (MusicGraph.search.linkType(serviceId, url)) {
+                    StreamingService.LinkType.PLAYLIST -> {
+                        _search.update { it.copy(loading = false) }
+                        openPlaylist(serviceId, url.trim())
+                        return@launch
+                    }
+
+                    StreamingService.LinkType.CHANNEL -> {
+                        _search.update {
+                            it.copy(
+                                loading = false,
+                                error = appContext.getString(R.string.pm_error_channel_link)
+                            )
+                        }
+                        return@launch
+                    }
+
+                    else -> Unit
+                }
+                if (requestId != linkRequestId) {
+                    return@launch
+                }
                 val info = withContext(Dispatchers.IO) {
                     ExtractorHelper.getNewStreamInfo(serviceId, url)
                 }
@@ -375,12 +412,17 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     fun supportsParts(serviceId: Int): Boolean = MusicGraph.search.supportsParts(serviceId)
 
     fun openParts(serviceId: Int, url: String, title: String) {
-        partsJob?.cancel()
-        _parts.value = PartsUiState(serviceId = serviceId, url = url, title = title)
-        partsJob = scope.launch {
+        songListJob?.cancel()
+        _songList.value = SongListUiState(
+            kind = SongListKind.PARTS,
+            serviceId = serviceId,
+            url = url,
+            title = title
+        )
+        songListJob = scope.launch {
             try {
                 val songs = MusicGraph.search.loadParts(serviceId, url).toPartSongs(serviceId)
-                _parts.update { it?.copy(loading = false, parts = songs) }
+                _songList.update { it?.copy(loading = false, songs = songs) }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
@@ -388,7 +430,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
                     "MusicSearch",
                     "Loading parts failed for $serviceId: ${error.javaClass.simpleName}"
                 )
-                _parts.update {
+                _songList.update {
                     it?.copy(
                         loading = false,
                         error = appContext.getString(R.string.pm_error_parts_failed)
@@ -398,13 +440,74 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun closeParts() {
-        partsJob?.cancel()
-        _parts.value = null
+    /**
+     * Lists a playlist or album. The first page shows at once; the remaining pages keep loading
+     * in the background so that "play all" and "download all" cover the whole list.
+     */
+    fun openPlaylist(serviceId: Int, url: String) {
+        songListJob?.cancel()
+        _songList.value = SongListUiState(
+            kind = SongListKind.PLAYLIST,
+            serviceId = serviceId,
+            url = url,
+            title = url
+        )
+        songListJob = scope.launch {
+            try {
+                val first = MusicGraph.search.loadPlaylist(serviceId, url)
+                var songs = PlaylistPaging.append(
+                    emptyList(),
+                    first.items.map { it.toPlaylistSong(serviceId, first.uploaderName) }
+                ) { it.url }
+                var next = first.nextPage
+                _songList.update {
+                    it?.copy(
+                        title = first.name.ifBlank { it.title },
+                        songs = songs,
+                        loading = false,
+                        loadingMore = PlaylistPaging.hasMore(songs.size, next != null)
+                    )
+                }
+                while (next != null && PlaylistPaging.hasMore(songs.size, true)) {
+                    val page = MusicGraph.search.loadMorePlaylist(serviceId, url, next)
+                    songs = PlaylistPaging.append(
+                        songs,
+                        page.items.map { it.toPlaylistSong(serviceId, first.uploaderName) }
+                    ) { it.url }
+                    next = page.nextPage
+                    _songList.update { it?.copy(songs = songs) }
+                }
+                _songList.update { it?.copy(loadingMore = false, truncated = next != null) }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                Log.w(
+                    "MusicSearch",
+                    "Loading playlist failed for $serviceId: ${error.javaClass.simpleName}"
+                )
+                _songList.update {
+                    // Keep what was already listed when only a later page failed.
+                    it?.copy(
+                        loading = false,
+                        loadingMore = false,
+                        error = if (it.songs.isEmpty()) {
+                            appContext.getString(R.string.pm_error_playlist_failed)
+                        } else {
+                            null
+                        }
+                    )
+                }
+            }
+        }
     }
 
-    fun playParts(context: Context, startIndex: Int) {
-        val songs = _parts.value?.parts.orEmpty()
+    fun closeSongList() {
+        songListJob?.cancel()
+        _songList.value = null
+    }
+
+    fun playSongList(context: Context, startIndex: Int) {
+        val songs = _songList.value?.songs.orEmpty()
         if (songs.isEmpty()) {
             return
         }
@@ -413,9 +516,9 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** Queues every part that is neither downloaded nor already in the download list. */
-    fun downloadParts(context: Context, onQueued: (Int) -> Unit) {
-        val songs = _parts.value?.parts.orEmpty()
+    /** Queues every song that is neither downloaded nor already in the download list. */
+    fun downloadSongList(context: Context, onQueued: (Int) -> Unit) {
+        val songs = _songList.value?.songs.orEmpty()
         if (songs.isEmpty()) {
             return
         }
@@ -434,8 +537,8 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun ensurePartTracks(onReady: (List<TrackEntity>) -> Unit) {
-        val songs = _parts.value?.parts.orEmpty()
+    fun ensureSongListTracks(onReady: (List<TrackEntity>) -> Unit) {
+        val songs = _songList.value?.songs.orEmpty()
         if (songs.isEmpty()) {
             return
         }
@@ -493,6 +596,12 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
             }
             MusicPlayerController.expandCurrent(context, track, parts)
         }
+    }
+
+    /** Album tracks often leave the uploader blank; the album's own uploader fills in. */
+    private fun StreamInfoItem.toPlaylistSong(serviceId: Int, listUploader: String): SearchSong {
+        val song = toSearchSong(serviceId)
+        return if (song.artist.isBlank()) song.copy(artist = listUploader) else song
     }
 
     private fun List<StreamInfoItem>.toPartSongs(serviceId: Int): List<SearchSong> =
@@ -777,7 +886,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
 
     override fun onCleared() {
         searchJob?.cancel()
-        partsJob?.cancel()
+        songListJob?.cancel()
         scope.cancel()
         super.onCleared()
     }

@@ -359,7 +359,11 @@
     <string name="pm_parts_count">%1$d 个分P</string>
     <string name="pm_parts_single">该视频只有一个分P。</string>
     <string name="pm_action_download_all">全部下载</string>
-    <string name="pm_feedback_parts_download_queued">已将 %1$d 个分P加入下载列表</string>
-    <string name="pm_feedback_parts_download_none">所有分P都已下载或正在下载</string>
+    <string name="pm_feedback_list_download_queued">已将 %1$d 首歌曲加入下载列表</string>
+    <string name="pm_feedback_list_download_none">所有歌曲都已下载或正在下载</string>
     <string name="pm_error_parts_failed">无法加载该视频的分P。</string>
+    <string name="pm_link_playlist_empty">该播放列表为空。</string>
+    <string name="pm_link_playlist_truncated">仅显示前 %1$d 首歌曲</string>
+    <string name="pm_error_playlist_failed">无法加载该播放列表。</string>
+    <string name="pm_error_channel_link">暂不支持频道链接，请打开歌曲、播放列表或专辑链接。</string>
 </resources>

@@ -58,7 +58,7 @@ import org.schabi.newpipe.music.ui.components.DownloadsSheet
 import org.schabi.newpipe.music.ui.components.FullPlayer
 import org.schabi.newpipe.music.ui.components.MiniPlayer
 import org.schabi.newpipe.music.ui.components.MusicBottomBar
-import org.schabi.newpipe.music.ui.components.PartsSheet
+import org.schabi.newpipe.music.ui.components.SongListSheet
 import org.schabi.newpipe.music.ui.components.QueueSheet
 import org.schabi.newpipe.music.ui.components.SleepTimerSheet
 import org.schabi.newpipe.music.ui.components.UpdateDialog
@@ -107,7 +107,7 @@ fun MusicApp(
     val recentSearches by viewModel.recentSearches.collectAsStateWithLifecycle()
     val importState by viewModel.importState.collectAsStateWithLifecycle()
     val searchState by viewModel.search.collectAsStateWithLifecycle()
-    val partsState by viewModel.parts.collectAsStateWithLifecycle()
+    val songListState by viewModel.songList.collectAsStateWithLifecycle()
 
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var detailPlaylistId by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -686,25 +686,25 @@ fun MusicApp(
         )
     }
 
-    partsState?.let { parts ->
-        PartsSheet(
-            state = parts,
-            onDismiss = viewModel::closeParts,
+    songListState?.let { songList ->
+        SongListSheet(
+            state = songList,
+            onDismiss = viewModel::closeSongList,
             onPlay = { index ->
-                viewModel.playParts(context, index)
-                viewModel.closeParts()
+                viewModel.playSongList(context, index)
+                viewModel.closeSongList()
             },
             onDownloadAll = {
-                viewModel.downloadParts(context) { queued ->
+                viewModel.downloadSongList(context) { queued ->
                     scope.launch {
                         val result = snackbarHostState.showSnackbar(
                             message = if (queued > 0) {
                                 context.getString(
-                                    R.string.pm_feedback_parts_download_queued,
+                                    R.string.pm_feedback_list_download_queued,
                                     queued
                                 )
                             } else {
-                                context.getString(R.string.pm_feedback_parts_download_none)
+                                context.getString(R.string.pm_feedback_list_download_none)
                             },
                             actionLabel = context.getString(R.string.pm_action_view_downloads),
                             withDismissAction = true,
@@ -715,13 +715,13 @@ fun MusicApp(
                         }
                     }
                 }
-                viewModel.closeParts()
+                viewModel.closeSongList()
             },
             onAddAllToPlaylist = {
-                viewModel.ensurePartTracks { partTracks ->
-                    addToPlaylistIds = partTracks.map { it.id }
+                viewModel.ensureSongListTracks { listTracks ->
+                    addToPlaylistIds = listTracks.map { it.id }
                 }
-                viewModel.closeParts()
+                viewModel.closeSongList()
             }
         )
     }

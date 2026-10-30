@@ -359,7 +359,11 @@
     <string name="pm_parts_count">%1$d parties</string>
     <string name="pm_parts_single">Cette vidéo ne comporte qu\'une seule partie.</string>
     <string name="pm_action_download_all">Tout télécharger</string>
-    <string name="pm_feedback_parts_download_queued">%1$d parties ajoutées à la liste de téléchargement</string>
-    <string name="pm_feedback_parts_download_none">Toutes les parties sont déjà téléchargées ou en cours de téléchargement</string>
+    <string name="pm_feedback_list_download_queued">%1$d titres ajoutés à la liste de téléchargement</string>
+    <string name="pm_feedback_list_download_none">Tous les titres sont déjà téléchargés ou en cours de téléchargement</string>
     <string name="pm_error_parts_failed">Impossible de charger les parties de cette vidéo.</string>
+    <string name="pm_link_playlist_empty">Cette playlist est vide.</string>
+    <string name="pm_link_playlist_truncated">Affichage des %1$d premiers titres</string>
+    <string name="pm_error_playlist_failed">Impossible de charger cette playlist.</string>
+    <string name="pm_error_channel_link">Les liens de chaîne ne sont pas encore pris en charge. Ouvrez plutôt un lien de titre, de playlist ou d\'album.</string>
 </resources>

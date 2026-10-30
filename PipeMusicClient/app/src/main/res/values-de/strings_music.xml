@@ -359,7 +359,11 @@
     <string name="pm_parts_count">%1$d Teile</string>
     <string name="pm_parts_single">Dieses Video hat nur einen Teil.</string>
     <string name="pm_action_download_all">Alle herunterladen</string>
-    <string name="pm_feedback_parts_download_queued">%1$d Teile zur Downloadliste hinzugefügt</string>
-    <string name="pm_feedback_parts_download_none">Alle Teile sind bereits heruntergeladen oder werden heruntergeladen</string>
+    <string name="pm_feedback_list_download_queued">%1$d Titel zur Downloadliste hinzugefügt</string>
+    <string name="pm_feedback_list_download_none">Alle Titel sind bereits heruntergeladen oder werden heruntergeladen</string>
     <string name="pm_error_parts_failed">Die Teile dieses Videos konnten nicht geladen werden.</string>
+    <string name="pm_link_playlist_empty">Diese Playlist ist leer.</string>
+    <string name="pm_link_playlist_truncated">Die ersten %1$d Titel werden angezeigt</string>
+    <string name="pm_error_playlist_failed">Diese Playlist konnte nicht geladen werden.</string>
+    <string name="pm_error_channel_link">Kanal-Links werden noch nicht unterstützt. Öffne stattdessen einen Titel-, Playlist- oder Album-Link.</string>
 </resources>

@@ -70,7 +70,8 @@ import org.schabi.newpipe.music.data.db.TrackEntity
 import org.schabi.newpipe.music.playback.PlayerUiState
 import org.schabi.newpipe.music.playback.SleepTimer
 import org.schabi.newpipe.music.ui.formatDuration
-import org.schabi.newpipe.music.ui.viewmodel.PartsUiState
+import org.schabi.newpipe.music.ui.viewmodel.SongListKind
+import org.schabi.newpipe.music.ui.viewmodel.SongListUiState
 import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -303,11 +304,14 @@ fun TrackActionsSheet(
     }
 }
 
-/** Every part of a multi-part video, with batch play, download and add-to-playlist. */
+/**
+ * The parts of a multi-part video, or a playlist / album opened from a link, with batch play,
+ * download and add-to-playlist.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PartsSheet(
-    state: PartsUiState,
+fun SongListSheet(
+    state: SongListUiState,
     onDismiss: () -> Unit,
     onPlay: (Int) -> Unit,
     onDownloadAll: () -> Unit,
@@ -315,6 +319,7 @@ fun PartsSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val colors = MaterialTheme.colorScheme
+    val isParts = state.kind == SongListKind.PARTS
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -333,14 +338,29 @@ fun PartsSheet(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
                 )
-                if (state.parts.isNotEmpty()) {
+                if (state.loadingMore) {
+                    Spacer(Modifier.width(12.dp))
+                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                }
+                if (state.songs.isNotEmpty()) {
                     Spacer(Modifier.width(12.dp))
                     Text(
-                        text = stringResource(R.string.pm_parts_count, state.parts.size),
+                        text = stringResource(
+                            if (isParts) R.string.pm_parts_count else R.string.pm_tracks_short,
+                            state.songs.size
+                        ),
                         style = MaterialTheme.typography.labelLarge,
                         color = colors.onSurfaceVariant
                     )
                 }
+            }
+            if (state.truncated) {
+                Text(
+                    text = stringResource(R.string.pm_link_playlist_truncated, state.songs.size),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                )
             }
             Spacer(Modifier.height(12.dp))
             when {
@@ -353,8 +373,10 @@ fun PartsSheet(
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
                 }
 
-                state.error != null || state.parts.isEmpty() -> Text(
-                    text = state.error ?: stringResource(R.string.pm_parts_single),
+                state.error != null || state.songs.isEmpty() -> Text(
+                    text = state.error ?: stringResource(
+                        if (isParts) R.string.pm_parts_single else R.string.pm_link_playlist_empty
+                    ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = if (state.error != null) colors.error else colors.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp)
@@ -404,7 +426,7 @@ fun PartsSheet(
                     }
                     Spacer(Modifier.height(8.dp))
                     LazyColumn(modifier = Modifier.heightIn(max = 420.dp)) {
-                        itemsIndexed(state.parts) { index, part ->
+                        itemsIndexed(state.songs) { index, song ->
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -414,22 +436,33 @@ fun PartsSheet(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "P${index + 1}",
+                                    text = if (isParts) "P${index + 1}" else "${index + 1}",
                                     style = MaterialTheme.typography.labelLarge,
                                     color = colors.primary,
                                     modifier = Modifier.width(44.dp)
                                 )
-                                Text(
-                                    text = part.title,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = colors.onSurface,
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.weight(1f)
-                                )
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = song.title,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = colors.onSurface,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    // Parts share one uploader; playlist songs may not.
+                                    if (!isParts && song.artist.isNotBlank()) {
+                                        Text(
+                                            text = song.artist,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = colors.onSurfaceVariant,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
                                 Spacer(Modifier.width(8.dp))
                                 Text(
-                                    text = formatDuration(part.durationMs),
+                                    text = formatDuration(song.durationMs),
                                     style = MaterialTheme.typography.labelMedium,
                                     color = colors.onSurfaceVariant
                                 )
