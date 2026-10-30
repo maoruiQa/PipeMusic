@@ -1,8 +1,11 @@
 ### New Features
 
-- Multi-part videos (BiliBili P1, P2, ...): playing one part now keeps going with the other parts, and the new "All parts" action in search results and the song menu lets you play, download or add every part to a playlist at once
-- Playlist and album links (YouTube, YouTube Music, SoundCloud sets, Bandcamp albums, NicoNico and PeerTube playlists) now open as a song list with play all, download all and add to playlist; channel links show a clear message instead of an error
+- Multi-part videos (BiliBili P1, P2, ...): playing one part now keeps going with the other parts, and the new "All parts" action in search results and the song menu lists every part
+- The parts list lets you pick parts one by one or select all, then play, download, delete downloads, add to a playlist, or merge them in order into one song in your library
+- Playlist and album links (YouTube, YouTube Music, SoundCloud sets, Bandcamp albums, NicoNico and PeerTube playlists) now open as a song list with the same batch actions; channel links show a clear message instead of an error
+- Playlists can now be searched and sorted by title, artist, album, duration, recently played or most played, in either direction
 
 ### Bug Fixes
 
 - Fixed the previous song continuing to play while the next song was still loading
+- The "more" button in the play queue now opens a menu (play, play next, move up or down, remove, more options) instead of removing the song right away
