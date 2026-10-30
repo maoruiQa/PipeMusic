@@ -1,0 +1,10 @@
+### New Features
+
+- Multi-part videos (BiliBili P1, P2, ...) stand out everywhere: search results show a stacked cover with the part count and lead straight to the parts list
+- The full player marks a part as "P3 / 12 · All parts" and has a Parts button; its Download button asks whether to download only this part or to pick parts to download or merge
+- Downloaded parts of one video show as a single collection in the library and in playlists, which can be expanded, played, added to a playlist or deleted at once
+- New setting "Group multi-part videos" (on by default) to show the parts separately instead
+
+### Bug Fixes
+
+- Parts now keep the video's real title instead of "P1 <part> | <title>"
