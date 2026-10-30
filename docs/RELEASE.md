@@ -36,22 +36,27 @@ PipeMusic_1.0.0-x86-debug.apk
 PipeMusic_1.0.0-x86_64-debug.apk
 ```
 
-Debug APKs are signed with the debug key and installable. Publish at least the universal APK and
-the `arm64-v8a` and `armeabi-v7a` splits; they cover virtually every phone.
+Debug APKs are signed with the debug key and installable, but use the `.debug` application ID, so
+they are a separate app from the release build. Publish at least the universal APK and the
+`arm64-v8a` and `armeabi-v7a` splits; they cover virtually every phone.
 
-## 4. Optional signed release build
+## 4. Signed release build
 
-Set the signing variables before running `assembleRelease`:
+Every release must also ship the signed release APKs, and they come first in the release notes and
+asset list. Set the signing variables before running `assembleRelease`:
 
 ```bash
 export KEY_PATH=/path/to/keystore.jks
 export KEY_STORE_PASSWORD=...
 export KEY_ALIAS=...
 export KEY_PASSWORD=...
+./gradlew :app:assembleRelease
 ```
 
-Without them the release APK is unsigned and cannot be installed. Keep the keystore and the
-passwords private.
+APKs are written to `PipeMusicClient/app/build/outputs/apk/release/` as
+`PipeMusic_<version>-<abi>-release.apk`. Without the variables the release APK is unsigned and
+cannot be installed. Keep the keystore and the passwords private, outside the repository, and back
+them up: a lost key means installed apps can no longer be updated.
 
 ## 5. Tag and publish
 
@@ -63,7 +68,8 @@ passwords private.
    git push origin v1.0.0
    ```
 
-3. Create the GitHub release for that tag and upload the APKs as assets.
+3. Create the GitHub release for that tag and upload the release APKs and then the debug APKs as
+   assets. In the release body, list the `-release.apk` files before the `-debug.apk` ones.
 4. Verify that the installed APK starts on a clean device and that the version shown in
    **Profile > About** matches the tag.
 
@@ -72,7 +78,7 @@ passwords private.
 - [ ] `baseVersionCode` and `appVersionName` updated
 - [ ] Fastlane changelog added
 - [ ] Unit tests and lint pass
-- [ ] APKs built and signed (debug key or release key)
+- [ ] Release APKs built and signed with the release key, debug APKs built
 - [ ] Tag pushed
 - [ ] Release published with APK assets
 - [ ] Release notes list features, fixes and known limitations

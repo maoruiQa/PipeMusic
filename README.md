@@ -55,8 +55,9 @@ English is the primary language of this repository. A Chinese companion document
 
 Prebuilt APKs are published on the
 [releases page](https://github.com/maoruiQa/PipeMusic/releases). Pick `universal` if you are not
-sure which ABI your device uses, or the `arm64-v8a` build for most modern phones. The published
-build is a debug-signed APK built directly from this source tree.
+sure which ABI your device uses, or the `arm64-v8a` build for most modern phones. Each release
+lists the signed `-release.apk` files first; the `-debug.apk` files are debug-signed builds from the
+same source tree and install as a separate app (`.debug` application ID).
 
 ## Features
 
